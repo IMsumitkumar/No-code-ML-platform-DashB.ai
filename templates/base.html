@@ -1,0 +1,87 @@
+<!DOCTYPE html>
+{% load static %}
+<html lang="en" dir="ltr">
+  <head>
+    <meta charset="utf-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, shrink-to-fit=no">
+    <title>DashB | play with your data</title>
+    <link rel="icon" type="image/x-icon" href="{% static "assets/img/favicon.ico" %}">
+    <link href="{% static "assets/css/loader.css" %}" rel="stylesheet" type="text/css" />
+
+    <!-- BEGIN GLOBAL MANDATORY STYLES -->
+    <link href="https://fonts.googleapis.com/css?family=Quicksand:400,500,600,700&display=swap" rel="stylesheet">
+    <link href="{% static "bootstrap/css/bootstrap.min.css" %}" rel="stylesheet" type="text/css" />
+    <link href="{% static "assets/css/plugins.css" %}" rel="stylesheet" type="text/css" />
+    <!-- END GLOBAL MANDATORY STYLES -->
+
+  </head>
+  <body class="alt-menu sidebar-noneoverflow">
+    <!-- BEGIN LOADER -->
+    <div id="load_screen">
+      <div class="loader">
+        <div class="loader_content">
+          <div class="spinner-grow align-self-center"></div>
+        </div>
+      </div>
+    </div>
+    <!-- END LOADER -->
+
+
+    <!--  BEGIN NAVBAR  -->
+    <div class="header-container">
+      <header class="header navbar navbar-expand-sm">
+
+          <a href="javascript:void(0);" class="sidebarCollapse" data-placement="bottom"><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="feather feather-menu"><line x1="3" y1="12" x2="21" y2="12"></line><line x1="3" y1="6" x2="21" y2="6"></line><line x1="3" y1="18" x2="21" y2="18"></line></svg></a>
+
+          <div class="nav-logo align-self-center">
+              <a class="navbar-brand" href="{% url 'home' %}"><img alt="logo" src="{% static "assets/img/arrow-down.png" %}"> <span class="navbar-brand-name">DashB.ai</span></a>
+          </div>
+
+          {% if request.user.is_authenticated %}
+          <ul class="navbar-item flex-row mr-auto">
+              <li class="nav-item align-self-center search-animated"></li>
+          </ul>
+          <ul class="">
+            <a href="{% url 'dashboard' %}"><button class="btn btn-outline-success mb-2"><strong>Dash Board</strong></button></a>
+            <a href="{% url 'logout' %}"><button class="btn btn-dark mb-2"><strong>Logout<strong></button></a>
+          </ul>
+
+          {% else %}
+
+          <ul class="navbar-item flex-row mr-auto">
+              <li class="nav-item align-self-center search-animated"></li>
+          </ul>
+          <ul class="">
+            <a href="{% url 'login' %}"><button class="btn btn-dark mb-2"><strong>Login</strong></button></a>
+            <a href="{% url 'register' %}"><button class="btn btn-dark mb-2"><strong>Signup</strong></button></a>
+          </ul>
+          {% endif %}
+
+      </header>
+    </div>
+  <!--  END NAVBAR  -->
+
+
+  {% block content %}
+
+  {% endblock content %}
+
+  <div class="footer-wrapper">
+    <div class="footer-section f-section-1">
+      <p class="">Copyright © 2020 DashB.ai, All rights reserved.</p>
+    </div>
+    <div class="footer-section f-section-2">
+      <p class="">made with <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="feather feather-heart"><path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"></path></svg> in India</p>
+    </div>
+  </div>
+
+  <!-- BEGIN GLOBAL MANDATORY SCRIPTS -->
+  <script src="{% static "assets/js/libs/jquery-3.1.1.min.js" %}"></script>
+  <script src="{% static "bootstrap/js/popper.min.js" %}"></script>
+  <script src="{% static "bootstrap/js/bootstrap.min.js" %}"></script>
+  <script src="{% static "assets/js/loader.js" %}"></script>
+
+
+  </body>
+</html>

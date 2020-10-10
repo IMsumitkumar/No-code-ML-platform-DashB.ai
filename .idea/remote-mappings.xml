@@ -1,0 +1,11 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project version="4">
+  <component name="RemoteMappingsManager">
+    <list>
+      <list>
+        <remote-mappings server-id="python@fdc7750f-03d3-44fa-ae5e-fc985c459c5f" />
+        <remote-mappings server-id="python@sftp://ubuntu@13.232.103.135:22/home/ubuntu/RemoteDjangoEnv/bin/python3.8" />
+      </list>
+    </list>
+  </component>
+</project>

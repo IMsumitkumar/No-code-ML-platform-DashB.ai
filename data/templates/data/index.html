@@ -1,0 +1,138 @@
+<!DOCTYPE html>
+{% load static %}
+{% load widget_tweaks %}
+
+<html lang="en">
+<head>
+    <meta charset="utf-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, shrink-to-fit=no">
+    <title>DashB | Upload Data</title>
+    <link rel="icon" type="image/x-icon" href="{% static "assets/img/favicon.ico" %}"/>
+    <!-- BEGIN GLOBAL MANDATORY STYLES -->
+    <link href="https://fonts.googleapis.com/css?family=Quicksand:400,500,600,700&display=swap" rel="stylesheet">
+    <link href="{% static "bootstrap/css/bootstrap.min.css" %}" rel="stylesheet" type="text/css" />
+    <link href="{% static "assets/css/plugins.css" %}" rel="stylesheet" type="text/css" />
+
+    <!-- END GLOBAL MANDATORY STYLES -->
+    <link href="{% static "assets/css/dashboard/dash_1.css" %}" rel="stylesheet" type="text/css" />
+    <style>
+        .footer-wrapper {
+            position: fixed;
+            text-align: center;
+            bottom: 0;
+            left: 0;
+            width: 100%;
+        }
+
+    </style>
+</head>
+<body class="alt-menu sidebar-noneoverflow">
+
+
+    <!--  BEGIN NAVBAR  -->
+    <div class="header-container">
+        <header class="header navbar navbar-expand-sm">
+
+            <a href="javascript:void(0);" class="sidebarCollapse" data-placement="bottom"><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="feather feather-menu"><line x1="3" y1="12" x2="21" y2="12"></line><line x1="3" y1="6" x2="21" y2="6"></line><line x1="3" y1="18" x2="21" y2="18"></line></svg></a>
+
+            <div class="nav-logo align-self-center">
+                <a class="navbar-brand" href="{% url 'home' %}"><img alt="logo" src="{% static "assets/img/arrow-down.png" %}"> <span class="navbar-brand-name">DashB | Upload Dataset in csv format only</span></a>
+            </div>
+
+            <ul class="navbar-item flex-row mr-auto">
+
+            </ul>
+            <a href="{% url 'dashboard' %}"><button type="button" class="btn btn-dark">Dash Board</button></a>
+
+            <ul class="navbar-item flex-row nav-dropdowns">
+
+                <li class="nav-item dropdown user-profile-dropdown order-lg-0 order-1">
+                    <a href="javascript:void(0);" class="nav-link dropdown-toggle user" id="user-profile-dropdown" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
+                        <div class="media">
+                            <img src="{% static "assets/img/arrow-down.png" %}" class="img-fluid" alt="admin-profile">
+                            <div class="media-body align-self-center">
+                                <h6><span>Hi,</span> {{request.user.username}}</h6>
+                            </div>
+                        </div>
+                        <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="feather feather-chevron-down"><polyline points="6 9 12 15 18 9"></polyline></svg>
+                    </a>
+
+                    <div class="dropdown-menu position-absolute animated fadeInUp" aria-labelledby="user-profile-dropdown">
+                        <div class="">
+                            <div class="dropdown-item">
+                                <a class="" href="#"><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="feather feather-user"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"></path><circle cx="12" cy="7" r="4"></circle></svg> My Profile</a>
+                            </div>
+                            <div class="dropdown-item">
+                                <a class="" href="{% url 'logout' %}"><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="feather feather-user"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"></path><circle cx="12" cy="7" r="4"></circle></svg> Log out</a>
+                            </div>
+                        </div>
+                    </div>
+
+                </li>
+            </ul>
+        </header>
+    </div>
+    <!--  END NAVBAR  -->
+
+    <br>
+
+    <div style="text-align: center;" class="alert alert-warning" role="alert">
+        <strong>We are only allow to work with csv ( comma seperated value) data. We will add other file formats in future versions ! </strong>
+    </div>
+
+    <br>
+    <div class="col-xl-12 col-lg-12 col-md-12 col-sm-12 col-12 layout-spacing">
+        {% include 'data/messages.html' %}
+            <div class="widget widget-chart-one">
+                <div class="widget-heading">
+                    <h5 class="">Upload DataSet | Only .csv</h5>
+                    <ul class="tabs tab-pills">
+                        <li><a class="tabmenu">.csv</a></li>
+                    </ul>
+                </div>
+
+                <div class="widget-content">
+                    <div style="min-height: 150px;" class="tabs tab-content">
+                        <hr>
+                        <form class="" enctype="multipart/form-data" method="post">
+                            {% csrf_token %}
+                            {{ form.file|add_class:"input-group-text" }}
+                            <br>
+                            <br>
+                            <input type="submit" class="btn btn-dark" name="" value="Next">
+                          </form>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+
+
+        <div class="footer-wrapper">
+            <div class="footer-section f-section-1">
+                <p class="">Copyright © 2020 <a target="_blank" href="#">DashB.ai</a>, All rights reserved.</p>
+            </div>
+            <div class="footer-section f-section-2">
+                <p class="">Coded with <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="feather feather-heart"><path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"></path></svg>  in india.</p>
+            </div>
+        </div>
+
+
+    <!-- BEGIN GLOBAL MANDATORY SCRIPTS -->
+    <script src="{% static "assets/js/libs/jquery-3.1.1.min.js" %}"></script>
+    <script src="{% static "plugins/jquery-ui/jquery-ui.min.js" %}"></script>
+    <script src="{% static "bootstrap/js/popper.min.js" %}"></script>
+    <script src="{% static "bootstrap/js/bootstrap.min.js" %}"></script>
+    <script>
+        setTimeout(function (){
+            if ($('#msg').length > 0) {
+                $('#msg').remove();
+            }
+        }, 4000 )
+
+    </script>
+
+</body>
+</html>
+

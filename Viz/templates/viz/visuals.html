@@ -1,0 +1,194 @@
+<!DOCTYPE html>
+{% load static %}
+<html lang="en">
+<head>
+    <meta charset="utf-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, shrink-to-fit=no">
+    <title>DashB | DashViz</title>
+    <link rel="icon" type="image/x-icon" href="{% static "assets/img/favicon.ico" %}"/>
+    <link href="{% static "assets/css/loader.css" %}" rel="stylesheet" type="text/css" />
+        <!-- BEGIN GLOBAL MANDATORY STYLES -->
+    <link href="https://fonts.googleapis.com/css?family=Quicksand:400,500,600,700&display=swap" rel="stylesheet">
+    <link href="{% static "bootstrap/css/bootstrap.min.css" %}" rel="stylesheet" type="text/css" />
+    <link href="{% static "assets/css/plugins.css" %}" rel="stylesheet" type="text/css" />
+    <!-- END GLOBAL MANDATORY STYLES -->
+
+    <!-- BEGIN PAGE LEVEL PLUGINS/CUSTOM STYLES -->
+    <link href="{% static "plugins/apex/apexcharts.css" %}" rel="stylesheet" type="text/css">
+    <link href="{% static "assets/css/dashboard/dash_1.css" %}" rel="stylesheet" type="text/css" />
+    <!-- END PAGE LEVEL PLUGINS/CUSTOM STYLES -->
+
+</head>
+<body class="alt-menu sidebar-noneoverflow">
+
+
+    <!--  BEGIN NAVBAR  -->
+    <div class="header-container">
+        <header class="header navbar navbar-expand-sm">
+
+            <a href="javascript:void(0);" class="sidebarCollapse" data-placement="bottom"><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="feather feather-menu"><line x1="3" y1="12" x2="21" y2="12"></line><line x1="3" y1="6" x2="21" y2="6"></line><line x1="3" y1="18" x2="21" y2="18"></line></svg></a>
+
+            <div class="nav-logo align-self-center">
+                <a class="navbar-brand" href="{% url 'home' %}"><img alt="logo" src="{% static "assets/img/arrow-down.png" %}"> <span class="navbar-brand-name">DashViz</span></a>
+            </div>
+
+            <ul class="navbar-item flex-row mr-auto"></ul>
+
+            <ul class="navbar-item flex-row nav-dropdowns">
+
+                <li class="nav-item dropdown user-profile-dropdown order-lg-0 order-1">
+                    <a href="javascript:void(0);" class="nav-link dropdown-toggle user" id="user-profile-dropdown" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
+                        <div class="media">
+                            <img src="{% static "assets/img/arrow-down.png" %}" class="img-fluid" alt="admin-profile">
+                            <div class="media-body align-self-center">
+                                <h6><span>Hi,</span> {{request.user.username}}</h6>
+                            </div>
+                        </div>
+                        <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="feather feather-chevron-down"><polyline points="6 9 12 15 18 9"></polyline></svg>
+                    </a>
+                    <div class="dropdown-menu position-absolute animated fadeInUp" aria-labelledby="user-profile-dropdown">
+                        <div class="">
+                            <div class="dropdown-item">
+                                <a class="" href="#"><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="feather feather-user"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"></path><circle cx="12" cy="7" r="4"></circle></svg> My Profile</a>
+                            </div>
+
+                            <div class="dropdown-item">
+                                <a class="" href="{% url 'dashboard' %}"><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="feather feather-user"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"></path><circle cx="12" cy="7" r="4"></circle></svg> Dash Board</a>
+                            </div>
+
+
+
+                            <div class="dropdown-item">
+                                <a class="" href="{% url 'logout' %}"><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="feather feather-log-out"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"></path><polyline points="16 17 21 12 16 7"></polyline><line x1="21" y1="12" x2="9" y2="12"></line></svg> Log Out</a>
+                            </div>
+                        </div>
+                    </div>
+
+                </li>
+            </ul>
+        </header>
+    </div>
+    <!--  END NAVBAR  -->
+
+    <!--  BEGIN MAIN CONTAINER  -->
+    <div class="main-container" id="container">
+
+        <div class="overlay"></div>
+        <div class="search-overlay"></div>
+
+        <!--  BEGIN CONTENT PART  -->
+        <div id="content" class="main-content">
+            <div class="layout-px-spacing">
+
+                <div class="page-header">
+                    <div class="page-title">
+                        <h3>Data Visualization</h3>
+                    </div>
+                    <div class="dropdown filter custom-dropdown-icon">
+
+                        <a class="dropdown-toggle btn" href="#" role="button" id="filterDropdown" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false"><span class="text"><span>Show</span> :  Categorical Features</span> <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="feather feather-chevron-down"><polyline points="6 9 12 15 18 9"></polyline></svg></a>
+
+                        <div class="dropdown-menu dropdown-menu-right" aria-labelledby="filterDropdown">
+                        {% for col in categorical_data %}
+                            <a class="dropdown-item" data-value="<span>Show</span> : Categorical" href="javascript:void(0);">{{col}}</a>
+                        {% endfor %}
+                        </div>
+                    </div>
+
+
+                </div>
+
+                <div class="row layout-top-spacing">
+
+                    <div class="col-xl-9 col-lg-12 col-md-12 col-sm-12 col-12 layout-spacing">
+                        <div class="widget widget-chart-one">
+                            <div class="widget-heading">
+                                <h5 class="">Data Visualization</h5>
+                                <ul class="tabs tab-pills">
+                                    <li><a href="javascript:void(0);" id="tb_1" class="tabmenu">plotly</a></li>
+                                </ul>
+                            </div>
+
+                            <div class="widget-content">
+                                <div style="min-height: 520px;" class="tabs tab-content">
+                                    {{y_fig|safe}}
+
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="col-xl-3 col-lg-12 col-md-12 col-sm-12 col-12 layout-spacing">
+                        <div class="widget widget-chart-two">
+
+                            <div style="padding:15px;" class="widget-content">
+                                <form method='POST'>
+                                {% csrf_token %}
+                                    <label>Plot:</label>
+                                    <select name="plot-type" class="form-control form-control-sm">
+                                    {% for plot in plots %}
+                                        <option>{{plot}}</option>
+                                    {% endfor %}
+                                    </select>
+                                    <label>X-axis:</label>
+                                    <select name="x-axis" class="form-control form-control-sm">
+                                    {% for col in data_columns %}
+                                        <option>{{col}}</option>
+                                    {% endfor %}
+                                    </select>
+                                    <label>Y-axis:</label>
+                                    <select name="y-axis" class="form-control form-control-sm">
+                                    <option> </option>
+                                    {% for col in data_columns %}
+                                        <option>{{col}}</option>
+                                    {% endfor %}
+                                    </select>
+                                    <label>color:</label>
+                                    <input name="color" class="form-control form-control-sm" type="text" placeholder="color">
+                                    </select>
+                                    <label>Size:</label>
+                                    <input name="size" class="form-control form-control-sm" type="text" placeholder="size">
+                                    <label>Title:</label>
+                                    <input name="title" class="form-control form-control-sm" type="text" placeholder="Enter Title ">
+                                    <label>Names:</label>
+                                    <select name="names" class="form-control form-control-sm">
+                                    {% for col in data_columns %}
+                                        <option>{{col}}</option>
+                                    {% endfor %}
+                                    </select>
+                                    <br>
+                                    <input type="submit" class="btn btn-warning" name="" value="Proceed">
+
+                                </form>
+                            </div>
+                        </div>
+                    </div>
+
+
+
+                </div>
+
+                <div class="footer-wrapper">
+                    <div class="footer-section f-section-1">
+                        <p class="">Copyright © 2020 <a target="_blank" href="#">DashB.ai</a>, All rights reserved.</p>
+                    </div>
+                    <div class="footer-section f-section-2">
+                        <p class="">Coded with <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="feather feather-heart"><path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"></path></svg>  in india.</p>
+                    </div>
+                </div>
+
+            </div>
+        </div>
+        <!--  END CONTENT PART  -->
+
+    </div>
+    <!-- END MAIN CONTAINER -->
+
+    <!-- BEGIN GLOBAL MANDATORY SCRIPTS -->
+    <script src="{% static "assets/js/libs/jquery-3.1.1.min.js" %}"></script>
+    <script src="{% static "bootstrap/js/popper.min.js" %}"></script>
+    <script src="{% static "bootstrap/js/bootstrap.min.js" %}"></script>
+    <script src="{% static "assets/js/custom.js" %}"></script>
+</body>
+</html>

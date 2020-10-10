@@ -1,0 +1,9 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project version="4">
+  <component name="SshConfigs">
+    <configs>
+      <sshConfig authType="PASSWORD" host="13.232.103.135" id="3219263e-67a0-4353-b717-777bf9961a22" port="22" nameFormat="DESCRIPTIVE" username="ubuntu" />
+      <sshConfig host="13.232.103.135" id="8f992bf1-38f9-4ac5-b141-9c22b4d67c4a" keyPath="$USER_HOME$/Documents/remote-django-private.ppk" port="22" nameFormat="DESCRIPTIVE" username="ubuntu" />
+    </configs>
+  </component>
+</project>
