@@ -32,3 +32,4 @@ suod==0.0.4
 threadpoolctl==2.1.0
 yapf==0.30.0
 zipp==3.3.0
+ipywidgets==7.5.1
