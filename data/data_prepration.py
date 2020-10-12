@@ -21,6 +21,7 @@ from sklearn.decomposition import IncrementalPCA
 from sklearn.manifold import TSNE
 from sklearn.pipeline import Pipeline
 from collections import defaultdict
+from django.contrib import messages
 
 class Auto_Datatypes(BaseEstimator, TransformerMixin):
 
@@ -533,7 +534,7 @@ class Empty(BaseEstimator, TransformerMixin):
     def fit_transform(self, data, y=None):
         return self.transform(data)
 
-def Preprocess_Path_Supervised(train_data, target_variable, ml_usecase=None, test_data=None, categorical_features=[],
+def Preprocess_Path_Supervised(request, train_data, target_variable, ml_usecase=None, test_data=None, categorical_features=[],
                         numerical_features=[], time_features=[],display_types=True,
                         imputation_type="simple imputer",features_to_drop=[], numeric_imputation_strategy='mean',
                         categorical_imputation_strategy='most frequent',
@@ -545,6 +546,7 @@ def Preprocess_Path_Supervised(train_data, target_variable, ml_usecase=None, tes
                         random_state=42):
 
     global subcase
+    
 
     train_data.columns = [str(i) for i in train_data.columns]
     if test_data is not None:
@@ -573,8 +575,11 @@ def Preprocess_Path_Supervised(train_data, target_variable, ml_usecase=None, tes
 
     if imputation_type == "simple imputer":
         global imputer
-        imputer = Missing_Imputation(numeric_strategy=numeric_imputation_strategy, target_variable=target_variable,
+        try:
+            imputer = Missing_Imputation(numeric_strategy=numeric_imputation_strategy, target_variable=target_variable,
                                  categorical_strategy=categorical_imputation_strategy)
+        except:
+            messages.error(request, "Cannot perform misssig values imputation on the dataset")
     else:
         imputer = Empty()
 
@@ -596,15 +601,21 @@ def Preprocess_Path_Supervised(train_data, target_variable, ml_usecase=None, tes
 
     if apply_binning == True:
         global binn
-        binn = Binning(features_to_discretize=features_to_binn)
+        try:
+            binn = Binning(features_to_discretize=features_to_binn)
+        except:
+            messages.error(request, "select at least one feature to perform binning")
     else:
         binn = Empty()
 
 
     if scale_data == True:
         global scaling
-        scaling = Scaling_and_Power_transformation(target=target_variable, function_to_apply=scaling_method,
+        try:
+            scaling = Scaling_and_Power_transformation(target=target_variable, function_to_apply=scaling_method,
                                                    random_state_quantile=random_state)
+        except:
+            messages.error(request, "Select correct method to transform")
     else:
         scaling = Empty()
 
@@ -613,8 +624,12 @@ def Preprocess_Path_Supervised(train_data, target_variable, ml_usecase=None, tes
 
     if (target_transformation == True) and (ml_usecase == 'regression'):
         global pt_target
-        pt_target = Target_Transformation(target=target_variable, function_to_apply=target_transformation_method)
+        try:
+            pt_target = Target_Transformation(target=target_variable, function_to_apply=target_transformation_method)
+        except :
+            messages.error(request, "blah blah blah")
     else:
+
         pt_target = Empty()
 
 

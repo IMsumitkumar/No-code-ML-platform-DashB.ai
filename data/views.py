@@ -1,13 +1,14 @@
 import os
+import pandas as pd
 from django.shortcuts import render, redirect
-from .models import DataSet
-from .forms import DataSetForm
+from .models import DataSet, ProcessedDataSet
+from .forms import DataSetForm, ProcessedDatasetForm
 from .operations import *
 from .user_code import *
 from django.contrib.auth.decorators import login_required
 from django.contrib import messages
 from .data_prepration import *
-
+import json2html
 
 @login_required()
 def upload_data(request):
@@ -166,11 +167,28 @@ def Operation(request):
                 user_given(request, data, col, code_operation[col])
 
 
-            data = Preprocess_Path_Supervised(train_data=data, target_variable=target_column, apply_zero_nearZero_variance=zero_variance, 
-                                              apply_grouping=group_sim_features, scale_data=True, target_transformation=True)
+            data = Preprocess_Path_Supervised(request, train_data=data, target_variable=target_column, apply_zero_nearZero_variance=zero_variance, 
+                                              apply_grouping=group_sim_features, scale_data=True, target_transformation=True, apply_binning=True)
+
+
+            
+
+
+            # DataSetForm = ProcessedDatasetForm(request.POST or None, request.FILES or None)
+            # if DataSetForm.is_valid():
+            #     print("Inside dataset save form")
+            #     # instance = DataSetForm.save(commit=False)
+            #     instance = ProcessedDataSet(file=data.to_csv('/saved/to_csv.csv'))
+            #     instance.user = request.user
+                
+                # instance.save()
+
 
             obj_data = data.head(20)
             obj = obj_data.to_html()
+
+            # categorical_data = data.select_dtypes(include=['object']).columns
+            # numerical_data = data.select_dtypes(include=['int64', 'float64']).columns
 
             categorical_data = data.dtypes[data.dtypes == 'O'].index
             num1 = data.dtypes[data.dtypes == 'int64'].index
@@ -207,3 +225,13 @@ def datatype_nullCount(df, indexes):
     for i in df[indexes].isnull().sum():
         null_count.append(i)
     return dict(zip(indexes, null_count))
+
+
+def save_processed_dataset(request):
+    # data = request.session.get('processed_data')
+
+    # x = json2html.json2html.convert(json=data)
+    context = {}
+    return render(request, 'data/modeling.html', context)
+
+
