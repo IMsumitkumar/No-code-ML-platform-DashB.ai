@@ -1,0 +1,117 @@
+{% extends "viz/base.html" %}
+{% load plotly_dash %}
+{% block content %}
+    <!--  BEGIN MAIN CONTAINER  -->
+    <div class="main-container" id="container">
+
+        <div class="overlay"></div>
+        <div class="search-overlay"></div>
+
+        <!--  BEGIN CONTENT PART  -->
+        <div id="content" class="main-content">
+            <div class="layout-px-spacing">
+
+                <div class="page-header">
+                    <div class="page-title">
+                        <h3>Data Visualization</h3>
+                    </div>
+                    <div class="dropdown filter custom-dropdown-icon">
+
+                        <a class="dropdown-toggle btn" href="#" role="button" id="filterDropdown" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false"><span class="text"><span>Show</span> :  Categorical Features</span> <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="feather feather-chevron-down"><polyline points="6 9 12 15 18 9"></polyline></svg></a>
+
+                        <div class="dropdown-menu dropdown-menu-right" aria-labelledby="filterDropdown">
+                            <a class="dropdown-item" data-value="<span>Show</span> : Categorical" href="javascript:void(0);">a</a>
+                            <a class="dropdown-item" data-value="<span>Show</span> : Categorical" href="javascript:void(0);">b</a>
+                            <a class="dropdown-item" data-value="<span>Show</span> : Categorical" href="javascript:void(0);">c</a>
+                        </div>
+                    </div>
+
+
+                </div>
+                {% plotly_app_bootstrap name="SimpleExample" aspect="16by9" %}
+
+
+                <!-- <div class="row layout-top-spacing">
+
+                    <div class="col-xl-9 col-lg-12 col-md-12 col-sm-12 col-12 layout-spacing">
+                        <div class="widget widget-chart-one">
+                            <div class="widget-heading">
+                                <h5 class="">Data Visualization</h5>
+                                <ul class="tabs tab-pills">
+                                    <li><a href="javascript:void(0);" id="tb_1" class="tabmenu">plotly</a></li>
+                                </ul>
+                            </div>
+
+                            <div class="widget-content">
+                                <div style="min-height: 520px;" class="tabs tab-content">
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="col-xl-3 col-lg-12 col-md-12 col-sm-12 col-12 layout-spacing">
+                        <div class="widget widget-chart-two">
+
+                            <div style="padding:15px;" class="widget-content">
+                                <form method='POST'>
+                                {% csrf_token %}
+                                    <label>Plot:</label>
+                                    <select name="plot-type" class="form-control form-control-sm">
+                                        <option>plot 1</option>
+                                        <option>plot 2</option>
+                                        <option>plot 3</option>
+                                    </select>
+                                    <label>X-axis:</label>
+                                    <select name="x-axis" class="form-control form-control-sm">
+                                        <option>x 1</option>
+                                        <option>x 2</option>
+                                    </select>
+                                    <label>Y-axis:</label>
+                                    <select name="y-axis" class="form-control form-control-sm">
+                                        <option>1</option>
+                                        <option>2</option>
+                                    </select>
+                                    <label>color:</label>
+                                    <input name="color" class="form-control form-control-sm" type="text" placeholder="color">
+                                    </select>
+                                    <label>Size:</label>
+                                    <input name="size" class="form-control form-control-sm" type="text" placeholder="size">
+                                    <label>Title:</label>
+                                    <input name="title" class="form-control form-control-sm" type="text" placeholder="Enter Title ">
+                                    <label>Names:</label>
+                                    <select name="names" class="form-control form-control-sm">
+                                        <option>1</option>
+                                        <option>1</option>
+                                        <option>1</option>
+                                    </select>
+                                    <br>
+                                    <input type="submit" class="btn btn-warning" name="" value="Proceed">
+
+                                </form>
+                            </div>
+                        </div>
+                    </div>
+
+
+
+                </div> -->
+
+                <div class="footer-wrapper">
+                    <div class="footer-section f-section-1">
+                        <p class="">Copyright © 2020 <a target="_blank" href="#">DashB.ai</a>, All rights reserved.</p>
+                    </div>
+                    <div class="footer-section f-section-2">
+                        <p class="">Coded with <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="feather feather-heart"><path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"></path></svg>  in india.</p>
+                    </div>
+                </div>
+
+            </div>
+        </div>
+        <!--  END CONTENT PART  -->
+
+    </div>
+    <!-- END MAIN CONTAINER -->
+
+
+
+{% endblock content %}

@@ -1,6 +1,7 @@
 import os
 import pandas as pd
 from django.shortcuts import render, redirect
+from django.http import HttpResponse
 from .models import DataSet, ProcessedDataSet
 from .forms import DataSetForm, ProcessedDatasetForm
 from .operations import *
@@ -9,6 +10,7 @@ from django.contrib.auth.decorators import login_required
 from django.contrib import messages
 from .data_prepration import *
 import json2html
+from .get_db_data import *
 
 @login_required()
 def upload_data(request):
@@ -49,8 +51,11 @@ def dashBoard(request):
         data = DataSet.objects.filter(user=request.user).order_by('-id')[:1]
         for i in data:
             df = pd.read_csv('media' + i.file.url, error_bad_lines=False, encoding='latin-1')
-            csv_df = df.head(20)
-            obj = csv_df.to_html()
+
+    
+    csv_df_top, csv_df_bottom = df.head(), df.tail()
+            # csv_df = df.head(20)
+            # obj = csv_df.to_html()
 
     data_shape = df.shape
     data_columns = df.columns
@@ -70,7 +75,8 @@ def dashBoard(request):
         'rows': data_shape[0],
         'columns': data_shape[1],
         'data_columns': data_columns,
-        'obj': obj,
+        'obj_top': csv_df_top.to_html(),
+        'obj_bottom':csv_df_bottom.to_html(),
         'data_desc_obj': data_desc.to_html(),
         'num_desc': num_null_desc,
         'cat_desc': cat_null_desc,
@@ -184,8 +190,7 @@ def Operation(request):
                 # instance.save()
 
 
-            obj_data = data.head(20)
-            obj = obj_data.to_html()
+            obj_top, obj_bottom = data.head(), data.tail()
 
             # categorical_data = data.select_dtypes(include=['object']).columns
             # numerical_data = data.select_dtypes(include=['int64', 'float64']).columns
@@ -203,7 +208,8 @@ def Operation(request):
                 'rows': data_shape[0],
                 'columns': data_shape[1],
                 'data_columns': data_columns,
-                'obj': obj,
+                'obj_top': obj_top.to_html(),
+                'obj_bottom':obj_bottom.to_html(),
                 'data_desc_obj': data_desc.to_html(),
                 'null_count': null_count,
                 'num_desc': num_null_desc,
@@ -235,3 +241,22 @@ def save_processed_dataset(request):
     return render(request, 'data/modeling.html', context)
 
 
+def database_dash(request):
+
+    if request.method == 'POST':
+        db_host = request.POST.get("db-host") or None
+        db_username = request.POST.get("db-username") or None
+        db_password = request.POST.get("db-password") or None
+        db_name = request.POST.get("db-database") or None
+        db_table = request.POST.get("db-tablename") or None
+
+    data = DB_from_servers(connect_to_mysql=True, host=db_host, username=db_username, password=db_password, 
+                            database=db_name, table_name=db_table)
+
+    obj_top, obj_bottom = data.head(), data.tail()
+    context = {
+        'obj_top':obj_top.to_html(), 
+        'obj_bottom':obj_bottom.to_html(),
+    }
+    # return HttpResponse("Nice")
+    return render(request, 'data/boot.html', context)

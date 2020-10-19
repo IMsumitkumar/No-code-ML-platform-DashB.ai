@@ -14,6 +14,8 @@ urlpatterns = (
 
     path('upload_dataset/', upload_data, name='upload'),
 
+    path('django_plotly_dash/', include('django_plotly_dash.urls')), 
+    
     path("login/",
          auth_views.LoginView.as_view(template_name="accounts/auth_login.html", authentication_form=CustomAuthForm),
          name='login'),

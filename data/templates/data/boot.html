@@ -128,9 +128,75 @@
       <div id="content" class="main-content">
           <div class="layout-px-spacing">
               <div class="action-btn layout-top-spacing mb-5">
-                  <p><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="feather feather-grid"><rect x="3" y="3" width="7" height="7"></rect><rect x="14" y="3" width="7" height="7"></rect><rect x="14" y="14" width="7" height="7"></rect><rect x="3" y="14" width="7" height="7"></rect></svg> Boards</p>
 
+                  <button type="button" class="btn btn-light" data-toggle="modal" data-target="#adddataModal">
+                    <a class="dataTask"><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="feather feather-grid"><rect x="3" y="3" width="7" height="7"></rect><rect x="14" y="3" width="7" height="7"></rect><rect x="14" y="14" width="7" height="7"></rect><rect x="3" y="14" width="7" height="7"></rect></svg></a>
+                  </button>
+                  <div class="modal fade" id="adddataModal" tabindex="-1" role="dialog" aria-labelledby="exampleModalLabel" aria-hidden="true">
+                    <div class="modal-dialog modal-xl" role="document">
+                      <div class="modal-content">
+                        <div class="modal-header">
+                          <h5 class="modal-title" id="exampleModalLabel">All About Data</h5>
+                          <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                            <span aria-hidden="true">&times;</span>
+                          </button>
+                        </div>
+                        <div class="modal-body">
+                          <p>Total features in dataset : {{columns}}</p>
+                          <p>Total features in dataset : {{rows}}</p>
 
+                          <div>
+                            <p>Numerical Data</p>
+                            {% for key, value in num_desc.items %}
+                              <p>{{key}}    :  {{value}}/{{rows}}</p>
+                            {% endfor %}
+                            <p>Categorical Data</p>
+                            {% for key, value in cat_desc.items %}
+                              <p>{{key}}    :  {{value}}/{{rows}}</p>
+                            {% endfor %}
+                          </div>
+                          
+                          <div>
+                            <p>Commands</p>
+                            <p>
+                              <button  class="btn btn-light" type="button"><strong>Int64</strong></button>
+                                  <button class="btn btn-light" type="button"><strong>Float64</strong></button>
+
+                                  <button class="btn btn-light" type="button"><strong>Drop</strong></button>
+                                  <button class="btn btn-light" type="button"><strong>DropNanFromRows</strong></button>
+                                  <button class="btn btn-light" type="button"><strong>DropNanFromColumn</strong></button>
+                                  <button class="btn btn-light" type="button"><strong>DropDuplicate</strong></button>
+
+                                  <button class="btn btn-light" type="button"><strong>FillNanWithZero</strong></button>
+                                  <button class="btn btn-light" type="button"><strong>FillNanWithPrecedenceAndZero</strong></button>
+                                  <button class="btn btn-light" type="button"><strong>FillNanWithOccurance</strong></button>
+                                  <button class="btn btn-light" type="button"><strong>FillNanWithMean</strong></button>
+                                  <button class="btn btn-light" type="button"><strong>FillNanWithMedian</strong></button>
+                                  <button class="btn btn-light" type="button"><strong>FillNanWithMode</strong></button>
+                                  <button class="btn btn-light" type="button"><strong>FillNanWithStd</strong></button>
+
+                                  <button class="btn btn-light" type="button"><strong>FillNanWithOccurance>LabelEncode</strong></button>
+                                  <button class="btn btn-light" type="button"><strong>FillNanWithMean>LabelEncode</strong></button>
+                                  <button class="btn btn-light" type="button"><strong>FillNanWithMedian>LabelEncode</strong></button>
+                                  <button class="btn btn-light" type="button"><strong>FillNanWithMode>LabelEncode</strong></button>
+
+                                  <button class="btn btn-light" type="button"><strong>FillNanWithOccurance>OneHotEncode</strong></button>
+                                  <button class="btn btn-light" type="button"><strong>FillNanWithMean>OneHotEncode</strong></button>
+                                  <button class="btn btn-light" type="button"><strong>FillNanWithMedian>OneHotEncode</strong></button>
+                                  <button class="btn btn-light" type="button"><strong>FillNanWithMode>OneHotEncode</strong></button>
+                            </p>
+                            
+                          </div>
+                        </div>
+                        <div class="modal-footer">
+                          <!-- <button type="button" class="btn btn-secondary" data-dismiss="modal">Close</button>
+                          <button type="button" class="btn btn-primary">Save changes</button> -->
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+
+                  <!-- ------------------------------------------  -->
                   <button type="button" class="btn btn-warning" data-toggle="modal" data-target="#adduserModal">
                     <a class="addTask"><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="feather feather-plus-circle"><circle cx="12" cy="12" r="10"></circle><line x1="12" y1="8" x2="12" y2="16"></line><line x1="8" y1="12" x2="16" y2="12"></line></svg> <strong>Operate the data</strong></a>
                   </button>
@@ -267,119 +333,6 @@
                       <strong>Drop -- int64 -- float64 -- FillNanWithMean -- FillNanWithMedian -- FillNanWithStd -- FillNanWithMean>LabelEncode -- FillNanWithMedian>LabelEncode -- FillNanWithMean>OneHotEncode </strong>
                     </div>
 
-                  <div class="row">
-                    <div class="col">
-                      <div class="">
-                        <div class="card card-body">
-                          <h5 class="card-title">Data Shape </h5>
-                          <br>
-                            <button class="btn btn-light" type="button" data-toggle="collapse" data-target="#multiCollapseExample1" aria-expanded="false" aria-controls="multiCollapseExample1"><strong>Total features in Dataset : {{columns}}</strong></button>
-                            <br>
-                            <button class="btn btn-light" type="button" data-toggle="collapse" data-target="#multiCollapseExample2" aria-expanded="false" aria-controls="multiCollapseExample2"><strong>Total records in dataset : {{rows}}</strong>  </button>
-                            <div class="col">
-                              <div class="collapse multi-collapse" id="multiCollapseExample1">
-                                <div class="card card-body">
-                                  <!-- data related to columns -->
-                                </div>
-                              </div>
-                            </div>
-                            <div class="col">
-                              <div class="collapse multi-collapse" id="multiCollapseExample2">
-                                <div class="card card-body">
-                                  <!-- data related to rows -->
-                                </div>
-                              </div>
-                            </div>
-                        </div>
-                      </div>
-                    </div>
-                    <div class="col">
-                      <div class="">
-                        <div class="card card-body">
-                          <h5 class="card-title">Datatype and Null Count</h5>
-                          <br>
-                            <button class="btn btn-light" type="button" data-toggle="collapse" data-target="#multiCollapseExample3" aria-expanded="false" aria-controls="multiCollapseExample3"><strong>Numerical Data</strong></button>
-                            <br>
-                            <button class="btn btn-light" type="button" data-toggle="collapse" data-target="#multiCollapseExample4" aria-expanded="false" aria-controls="multiCollapseExample4"><strong>Categorical Data</strong>  </button>
-
-                          <!-- <div class="row"> -->
-                            <div class="col">
-                              <div class="collapse multi-collapse" id="multiCollapseExample3">
-                                <div class="card card-body">
-                                  {% for key, value in num_desc.items %}
-                                    <span class="badge badge-pill badge-light">{{key}}    :  {{value}}/{{rows}}</span>
-                                    <br>
-                                  {% endfor %}
-                                </div>
-                              </div>
-                            </div>
-                            <div class="col">
-                              <div class="collapse multi-collapse" id="multiCollapseExample4">
-                                <div class="card card-body">
-                                  {% for key, value in cat_desc.items %}
-                                  <span class="badge badge-pill badge-light">{{key}}    :  {{value}}/{{rows}}</span>
-                                  <br>
-                                    <!-- <p>{{key}}:{{value}}/{{rows}}</p> -->
-                                  {% endfor %}
-                                </div>
-                              </div>
-                            </div>
-                        </div>
-                      </div>
-                    </div>
-                    <div class="col">
-                      <div class="">
-                        <div class="card card-body">
-                          <h5 class="card-title">Commands</h5>
-                          <br>
-                            <button class="btn btn-light" type="button" data-toggle="collapse" data-target="#multiCollapseExample5" aria-expanded="false" aria-controls="multiCollapseExample5"><strong>Active Commands</strong></button>
-                            <br>
-                            <button class="btn btn-light" type="button" data-toggle="collapse" data-target="#multiCollapseExample6" aria-expanded="false" aria-controls="multiCollapseExample6"><strong>Suggestions</strong>  </button>
-
-                          <!-- <div class="row"> -->
-                            <div class="col">
-                              <div class="collapse multi-collapse" id="multiCollapseExample5">
-                                <div class="card card-body">
-                                  <br>
-                                  <button  class="btn btn-light" type="button"><strong>Int64</strong></button>
-                                  <button class="btn btn-light" type="button"><strong>Float64</strong></button>
-
-                                  <button class="btn btn-light" type="button"><strong>Drop</strong></button>
-                                  <button class="btn btn-light" type="button"><strong>DropNanFromRows</strong></button>
-                                  <button class="btn btn-light" type="button"><strong>DropNanFromColumn</strong></button>
-                                  <button class="btn btn-light" type="button"><strong>DropDuplicate</strong></button>
-
-                                  <button class="btn btn-light" type="button"><strong>FillNanWithZero</strong></button>
-                                  <button class="btn btn-light" type="button"><strong>FillNanWithPrecedenceAndZero</strong></button>
-                                  <button class="btn btn-light" type="button"><strong>FillNanWithOccurance</strong></button>
-                                  <button class="btn btn-light" type="button"><strong>FillNanWithMean</strong></button>
-                                  <button class="btn btn-light" type="button"><strong>FillNanWithMedian</strong></button>
-                                  <button class="btn btn-light" type="button"><strong>FillNanWithMode</strong></button>
-                                  <button class="btn btn-light" type="button"><strong>FillNanWithStd</strong></button>
-
-                                  <button class="btn btn-light" type="button"><strong>FillNanWithOccurance>LabelEncode</strong></button>
-                                  <button class="btn btn-light" type="button"><strong>FillNanWithMean>LabelEncode</strong></button>
-                                  <button class="btn btn-light" type="button"><strong>FillNanWithMedian>LabelEncode</strong></button>
-                                  <button class="btn btn-light" type="button"><strong>FillNanWithMode>LabelEncode</strong></button>
-
-                                  <button class="btn btn-light" type="button"><strong>FillNanWithOccurance>OneHotEncode</strong></button>
-                                  <button class="btn btn-light" type="button"><strong>FillNanWithMean>OneHotEncode</strong></button>
-                                  <button class="btn btn-light" type="button"><strong>FillNanWithMedian>OneHotEncode</strong></button>
-                                  <button class="btn btn-light" type="button"><strong>FillNanWithMode>OneHotEncode</strong></button>
-                                </div>
-                              </div>
-                            </div>
-                            <div class="col">
-                              <div class="collapse multi-collapse" id="multiCollapseExample6">
-                                <div class="card card-body">
-                                  <p><strong>Do OTHER TASK BC HAR CARD ME MUJHE HI BHAR DO</strong></p>
-                                </div>
-                              </div>
-                            </div>
-                        </div>
-                      </div>
-                    </div>
-                  </div>
 
                   </div>
 
@@ -387,7 +340,7 @@
                       <div class="col-xl-12 col-lg-12 col-md-12 col-sm-12 col-12 layout-spacing">
                         <div class="widget widget-chart-one">
                             <div class="widget-heading">
-                                <h5 class="">DataSet's First 20 Records</h5>
+                                <h5 class="">DataSet's First 5 Records</h5>
                                 <ul class="tabs tab-pills">
                                     <li><a href="javascript:void(0);" id="tb_1" class="tabmenu">.csv</a></li>
                                 </ul>
@@ -395,7 +348,24 @@
 
                             <div class="widget-content task-list-section">
                                 <div class="tabs tab-content">
-                                    <strong style="color:#001a4d;">{{obj|safe}}</strong>
+                                    <strong style="color:#001a4d;">{{obj_top|safe}}</strong>
+
+                                </div>
+                            </div>
+                        </div>
+                      </div>
+                      <div class="col-xl-12 col-lg-12 col-md-12 col-sm-12 col-12 layout-spacing">
+                        <div class="widget widget-chart-one">
+                            <div class="widget-heading">
+                                <h5 class="">DataSet's last 5 Records</h5>
+                                <ul class="tabs tab-pills">
+                                    <li><a href="javascript:void(0);" id="tb_1" class="tabmenu">.csv</a></li>
+                                </ul>
+                            </div>
+
+                            <div class="widget-content task-list-section">
+                                <div class="tabs tab-content">
+                                    <strong style="color:#001a4d;">{{obj_bottom|safe}}</strong>
 
                                 </div>
                             </div>

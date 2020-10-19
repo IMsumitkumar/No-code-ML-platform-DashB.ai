@@ -24,6 +24,10 @@
             left: 0;
             width: 100%;
         }
+        .database {
+            width: 23%;
+            margin-bottom: 6px;
+        }
 
     </style>
 </head>
@@ -83,25 +87,52 @@
 
     <br>
     <div class="col-xl-12 col-lg-12 col-md-12 col-sm-12 col-12 layout-spacing">
-        {% include 'data/messages.html' %}
+    {% include 'data/messages.html' %}
+        <div class="widget widget-chart-one">
+            <div class="widget-heading">
+                <h5 class="">Upload DataSet | Only .csv</h5>
+                <ul class="tabs tab-pills">
+                    <li><a class="tabmenu">.csv</a></li>
+                </ul>
+            </div>
+
+            <div class="widget-content">
+                <div style="min-height: 150px;" class="tabs tab-content">
+                    <hr>
+                    <form class="" enctype="multipart/form-data" method="post">
+                        {% csrf_token %}
+                        {{ form.file|add_class:"input-group-text" }}
+                        <br>
+                        <br>
+                        <input type="submit" class="btn btn-dark" name="" value="Next">
+                        </form>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="col-xl-12 col-lg-12 col-md-12 col-sm-12 col-12 layout-spacing">
             <div class="widget widget-chart-one">
                 <div class="widget-heading">
-                    <h5 class="">Upload DataSet | Only .csv</h5>
+                    <h5 class="">Fetch dataset from live Database</h5>
                     <ul class="tabs tab-pills">
-                        <li><a class="tabmenu">.csv</a></li>
+                        <li><a class="tabmenu">MySql/MongoDB</a></li>
                     </ul>
                 </div>
-
+    
                 <div class="widget-content">
                     <div style="min-height: 150px;" class="tabs tab-content">
                         <hr>
-                        <form class="" enctype="multipart/form-data" method="post">
+                        <form action="{% url 'databasedata' %}" class="" enctype="multipart/form-data" method="post">
                             {% csrf_token %}
-                            {{ form.file|add_class:"input-group-text" }}
-                            <br>
+                            <input name="db-host" class="form-control form-control-sm database" type="text" placeholder="Host">
+                            <input name="db-username" class="form-control form-control-sm database" type="text" placeholder="username">
+                            <input name="db-password" type="password" class="form-control form-control-sm database" type="text" placeholder="password">
+                            <input name="db-database" class="form-control form-control-sm database" type="text" placeholder="Database Name">
+                            <input name="db-tablename" class="form-control form-control-sm database" type="text" placeholder="Table Name">
                             <br>
                             <input type="submit" class="btn btn-dark" name="" value="Next">
-                          </form>
+                            </form>
                     </div>
                 </div>
             </div>
