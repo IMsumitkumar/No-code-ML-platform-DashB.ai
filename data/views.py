@@ -8,7 +8,7 @@ from .operations import *
 from .user_code import *
 from django.contrib.auth.decorators import login_required
 from django.contrib import messages
-from .data_prepration import *
+from .preprocess import Supervised_Path
 import json2html
 from .get_db_data import *
 
@@ -173,7 +173,7 @@ def Operation(request):
                 user_given(request, data, col, code_operation[col])
 
 
-            data = Preprocess_Path_Supervised(request, train_data=data, target_variable=target_column, apply_zero_nearZero_variance=zero_variance, 
+            data = Supervised_Path(train_data=data, target_variable=target_column, apply_zero_nearZero_variance=zero_variance, 
                                               apply_grouping=group_sim_features, scale_data=True, target_transformation=True, apply_binning=True)
 
 

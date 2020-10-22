@@ -52,11 +52,8 @@ def graph(app, df):
                 dcc.Dropdown(id="x_axis",
                     options=[{'label':x, 'value':x} for x in df.columns],
                     placeholder="X axis",
-                    multi=False,
                     searchable=True,
                     className="form-dropdown",
-                    persistence='string',
-                    persistence_type='local',
                 ),
                 html.Br(),
                 dcc.Dropdown(id="y_axis",
@@ -64,6 +61,12 @@ def graph(app, df):
                     placeholder="Y axis", searchable=True, clearable=False,
                 ),
                 html.Br(),
+                dcc.Dropdown(id="color",
+                    options=[{'label':x, 'value':x} for x in df.select_dtypes(include=['object']).columns],
+                    placeholder="Color",
+                    searchable=True,
+                    className="form-dropdown",
+                ),
             ])
         ],
         style={"height":700},
@@ -81,32 +84,33 @@ def graph(app, df):
         Output('unique_graph','figure'),
         [Input('graph_type','value'),
         Input('x_axis','value'),
-        Input('y_axis','value')]
+        Input('y_axis','value'),
+        Input('color', 'value')]
     )
-    def build_graph(graph_type, x_axis, y_axis):
+    def build_graph(graph_type, x_axis, y_axis, color):
         dff=df
 
         if graph_type == 'LINE':
-            fig = px.line(dff, x=x_axis, y=y_axis, color=None, height=600)
+            fig = px.line(dff, x=x_axis, y=y_axis, color=color, height=600)
             fig.update_layout(yaxis={'title':y_axis},
                         title={'text':x_axis+' vs '+ y_axis,
                         'font':{'size':28},'x':0.5,'xanchor':'center'})
             
         elif graph_type == 'SCATTER':
-            fig = px.scatter(dff, x=x_axis, y=y_axis, color=None, height=600)
+            fig = px.scatter(dff, x=x_axis, y=y_axis, color=color, height=600)
             fig.update_layout(yaxis={'title':y_axis},
                             title={'text':x_axis+' vs '+ y_axis,
                             'font':{'size':28},'x':0.5,'xanchor':'center'})
 
         elif graph_type == 'BAR':
-            fig = px.bar(dff, x=x_axis, y=y_axis, color=None, height=600)
+            fig = px.bar(dff, x=x_axis, y=y_axis, color=color, height=600)
             fig.update_xaxes(type='category')
             fig.update_layout(yaxis={'title':y_axis},
                             title={'text':x_axis+' vs '+ y_axis,
                             'font':{'size':28},'x':0.5,'xanchor':'center'})
         
         elif graph_type == 'AREA':
-            fig = px.area(dff, x=x_axis, y=y_axis, color=None, height=600)
+            fig = px.area(dff, x=x_axis, y=y_axis, color=color, height=600)
             fig.update_layout(yaxis={'title':y_axis},
                             title={'text':x_axis+' vs '+ y_axis,
                             'font':{'size':28},'x':0.5,'xanchor':'center'})
@@ -115,7 +119,7 @@ def graph(app, df):
             fig = px.density_heatmap(dff, x=x_axis, y=y_axis,  nbinsx=20, nbinsy=20, marginal_x="histogram", marginal="histogram")
 
         elif graph_type == 'BOX':
-            fig = px.box(dff, x=x_axis, y=y_axis, color=None, height=600)
+            fig = px.box(dff, x=x_axis, y=y_axis, color=color, height=600)
             fig.update_layout(yaxis={'title':y_axis},
                             title={'text':x_axis+' vs '+ y_axis,
                             'font':{'size':28},'x':0.5,'xanchor':'center'})
@@ -127,19 +131,19 @@ def graph(app, df):
                             'font':{'size':28},'x':0.5,'xanchor':'center'})
 
         elif graph_type == 'HIST': 
-            fig = px.histogram(dff, x=x_axis, y=y_axis,marginal="box", color=None, height=600)  # can be box or violin
+            fig = px.histogram(dff, x=x_axis, y=y_axis,marginal="box", color=color, height=600)  # can be box or violin
             fig.update_layout(yaxis={'title':y_axis},
                             title={'text':x_axis+' vs '+ y_axis,
                             'font':{'size':28},'x':0.5,'xanchor':'center'})
 
         elif graph_type == 'SMX':
-            fig = px.scatter_matrix(dff, color=None)
+            fig = px.scatter_matrix(dff, color=color)
             fig.update_layout(yaxis={'title':y_axis},
                                 title={'text':x_axis+' vs '+ y_axis,
                                 'font':{'size':28},'x':0.5,'xanchor':'center'})
         
         elif graph_type == 'VIOLIN': 
-            fig = px.violin(dff, x=x_axis, y=y_axis, box=True, color=None, height=600)  # can be box or violin
+            fig = px.violin(dff, x=x_axis, y=y_axis, box=True, color=color, height=600)  # can be box or violin
             fig.update_layout(yaxis={'title':y_axis},
                             title={'text':x_axis+' vs '+ y_axis,
                             'font':{'size':28},'x':0.5,'xanchor':'center'})
