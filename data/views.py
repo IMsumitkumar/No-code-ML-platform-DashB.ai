@@ -1,10 +1,9 @@
 import os
 import pandas as pd
-from django.shortcuts import render, redirect
+from django.shortcuts import render, redirect, resolve_url
 from django.http import HttpResponse
 from .models import DataSet, ProcessedDataSet
 from .forms import DataSetForm, ProcessedDatasetForm
-from .operations import *
 from .user_code import *
 from django.contrib.auth.decorators import login_required
 from django.contrib import messages
@@ -54,8 +53,6 @@ def dashBoard(request):
 
     
     csv_df_top, csv_df_bottom = df.head(), df.tail()
-            # csv_df = df.head(20)
-            # obj = csv_df.to_html()
 
     data_shape = df.shape
     data_columns = df.columns
@@ -94,100 +91,37 @@ def Operation(request):
     column_name = []
     data_operation = []
     code_snippet = []
+    empty_list = []
     data = DataSet.objects.filter(user=request.user).order_by('-id')[:1]
     for i in data:
         data = pd.read_csv('media' + i.file.url, error_bad_lines=False, encoding='latin-1')
         if data.shape[0] > 100000:
             data = data[0:100000]
         if request.method == 'POST':
-            target_column = request.POST.get("target-col") or None
-            # zero_variance = request.POST.get("zero-variance") or None
-            # cat_feature_with_rare_levels = request.POST.get("new-cat-feature-by-rare") or None
-            # group_sim_features = request.POST.get("Gp-sim-feature") or None
-            scale_n_transform = request.POST.get("scale") or None
-            target_scale = request.POST.get("target-scale") or None
-            # dim_reduction = request.POST.get("dim-reduction") or None
+            target_variable = request.POST.get("target-col") or None
+            time_features = request.POST.getlist("time-features") or empty_list
+            features_to_drop = request.POST.getlist("toDrop-features") or empty_list
+            numeric_imputation_strategy = request.POST.get("num-stats") or None
+            categoric_imputation_strategy = request.POST.get("cat-stats") or None
+            remove_zero_variance = True if request.POST.get("rm-var") == 'YES' else False                  
+            group_sim_features = True if request.POST.get("gp-sim-feature") == 'YES' else False        
+            sim_group_name = request.POST.getlist("gp-sim-feature-name") or None
+            sim_feature_list = request.POST.getlist("gp-sim-feature-list") or empty_list
+            scale_and_transform = False if request.POST.get("scale") == 'YES' else True                   
+            scale_and_transform_method = request.POST.get("scale-method") or None
+            target_transform = False if request.POST.get("target-transform") == 'YES' else True            
+            power_transform = False if request.POST.get("power-transform") == 'YES' else True 
 
-            zero_variance = True if request.POST.get("zero-variance")=='YES' else False
-            cat_feature_with_rare_levels = True if request.POST.get("new-cat-feature-by-rare") == 'YES' else False
-            group_sim_features = True if request.POST.get("Gp-sim-feature") == 'YES' else False
-            dim_reduction = True if request.POST.get("dim-reduction") == 'YES' else False
-
-            print(scale_n_transform)
-
-            for col in data.columns:
-                column_name.append(col)
-                data_operation.append(request.POST.get(col) or None)
-                code_snippet.append(request.POST.get("code-" + col))
-
-            operations = dict(zip(column_name, data_operation))
-            code_operation = dict(zip(column_name, code_snippet))
-
-            for operation in operations:
-                if operations[operation] == "Int64":
-                    intConversion(request, data, operation)
-                elif operations[operation] == 'Float64':
-                    floatConversion(request, data, operation)
-                elif operations[operation] == "Drop":
-                    drop_column(data, operation)
-                elif operations[operation] == "DropNanFromRows":
-                    drop_nan_rows(data)
-                elif operations[operation] == "DropNanFromColumn":
-                    drop_nan_cols(data)
-                elif operations[operation] == "DropDuplicate":
-                    drop_duplicate(data, operation)
-                elif operations[operation] == "FillNanWithZero":
-                    fill_nan_with_zero_or_drop(request, data, operation)
-                elif operations[operation] == "FillNanWithPrecedenceAndZero":
-                    fill_nan_precedureAndZero_or_drop(request, data, operation)
-                elif operations[operation] == "FillNanWithOccurance":
-                    fill_nan_max_occurance_or_drop(request, data, operation)
-                elif operations[operation] == "FillNanWithMean":
-                    fill_nan_with_mean_or_drop(request, data, operation)
-                elif operations[operation] == "FillNanWithMedian":
-                    fill_nan_with_median_or_drop(request, data, operation)
-                elif operations[operation] == "FillNanWithMode":
-                    fill_nan_with_mode_or_drop(request, data, operation)
-                elif operations[operation] == "FillNanWithStd":
-                    fill_nan_with_std_or_drop(request, data, operation)
-                elif operations[operation] == 'FillNanWithOccurance>LabelEncode':
-                    fill_nan_max_occurance_or_drop_then_label_encoding(request, data, operation)
-                elif operations[operation] == 'FillNanWithMean>LabelEncode':
-                    fill_nan_with_mean_or_drop_then_label_encoding(request, data, operation)
-                elif operations[operation] == 'FillNanWithMedian>LabelEncode':
-                    fill_nan_with_median_or_drop_then_label_encoding(data, operation)
-                elif operations[operation] == 'FillNanWithMode>LabelEncode':
-                    fill_nan_with_mode_or_drop_then_label_encoding(data, operation)
-                elif operations[operation] == 'FillNanWithOccurance>OneHotEncode':
-                    data = fill_nan_max_occurance_or_drop_then_onehot_encoding(request, data, operation)
-                elif operations[operation] == 'FillNanWithMean>OneHotEncode':
-                    data = fill_nan_with_mean_or_drop_then_onehot_encoding(request, data, operation)
-                elif operations[operation] == 'FillNanWithMedian>OneHotEncode':
-                    data = fill_nan_with_median_or_drop_then_onehot_encoding(request, data, operation)
-                elif operations[operation] == 'FillNanWithMode>OneHotEncode':
-                    data = fill_nan_with_mode_or_drop_then_onehot_encoding(request, data, operation)
-                else:
-                    print("Not Supported")
-
-            for col in code_operation:
-                user_given(request, data, col, code_operation[col])
+            print(remove_zero_variance)              
 
 
-            data = Supervised_Path(train_data=data, target_variable=target_column, apply_zero_nearZero_variance=zero_variance, 
-                                              apply_grouping=group_sim_features, scale_data=True, target_transformation=True, apply_binning=True)
+            data = Supervised_Path(train_data=data, target_variable=target_variable,
+                                time_features=time_features, features_to_drop=features_to_drop,numeric_imputation_strategy=numeric_imputation_strategy,
+                                categorical_imputation_strategy=categoric_imputation_strategy, apply_zero_nearZero_variance=remove_zero_variance,
+                                apply_grouping=group_sim_features, group_name=sim_group_name, features_to_group_ListofList=[sim_feature_list],
+                                scale_data=scale_and_transform, scaling_method=scale_and_transform_method,
+                                target_transformation=target_transform, Power_transform_data=power_transform)
 
-
-            
-
-
-            # DataSetForm = ProcessedDatasetForm(request.POST or None, request.FILES or None)
-            # if DataSetForm.is_valid():
-            #     print("Inside dataset save form")
-            #     # instance = DataSetForm.save(commit=False)
-            #     instance = ProcessedDataSet(file=data.to_csv('/saved/to_csv.csv'))
-            #     instance.user = request.user
-                
-                # instance.save()
 
 
             obj_top, obj_bottom = data.head(), data.tail()
@@ -242,6 +176,7 @@ def save_processed_dataset(request):
 
 
 def database_dash(request):
+    db_host = None
 
     if request.method == 'POST':
         db_host = request.POST.get("db-host") or None
@@ -250,13 +185,20 @@ def database_dash(request):
         db_name = request.POST.get("db-database") or None
         db_table = request.POST.get("db-tablename") or None
 
-    data = DB_from_servers(connect_to_mysql=True, host=db_host, username=db_username, password=db_password, 
-                            database=db_name, table_name=db_table)
-
-    obj_top, obj_bottom = data.head(), data.tail()
-    context = {
-        'obj_top':obj_top.to_html(), 
-        'obj_bottom':obj_bottom.to_html(),
-    }
-    # return HttpResponse("Nice")
-    return render(request, 'data/boot.html', context)
+    if (db_host and db_username) is not None:
+        try:
+            data = DB_from_servers(connect_to_mysql=True, host=db_host, username=db_username, password=db_password, 
+                                database=db_name, table_name=db_table)
+            obj_top, obj_bottom = data.head(), data.tail()
+            context = {
+                'obj_top':obj_top.to_html(), 
+                'obj_bottom':obj_bottom.to_html(),
+            }
+            return render(request, 'data/boot.html', context)
+        except Exception as e:
+            messages.error(request, "Install MySql server in your system | or " + str(e))
+            return render(request, 'data/index.html', {})
+    else:
+        messages.error(request, "Enter Valid Credentials!")
+        return render(request, 'data/index.html', {})
+    
