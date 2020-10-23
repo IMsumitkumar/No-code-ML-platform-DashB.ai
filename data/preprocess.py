@@ -411,52 +411,64 @@ class Target_Transformation(BaseEstimator, TransformerMixin):
         return data
 
 class Make_Time_Features(BaseEstimator, TransformerMixin):
-    def __init__(self, time_features=[], list_of_features=['month', 'weekday', 'is_month_end', 'is_month_start', 'hour']):
+    def __init__(self, time_features=[]):
         self.time_features = time_features
-        self.list_of_features = set(list_of_features)
-        return None
+
     
     def fit(self, dataset, y=None):
         return None
     
     def transform(self, dataset, y=None):
         data = dataset.copy()
-        
-        def get_time_features(r):
-            
-            features = []
-            if 'month' in self.list_of_features:
-                features.append(("_month", str(datetime.date(r).month)))
-            if 'weekday' in self.list_of_features:
-                features.append(("_weekday", str(datetime.weekday(r))))
-            if 'is_month_end' in self.list_of_features:
-                features.append(("_is_month_end", '1' if calendar.monthrange(datetime.date(r).year,datetime.date(r).month)[1] == datetime.date(r).day else '0'))
-            if 'is_month_start' in self.list_of_features:
-                features.append(("_is_month_start", '1' if datetime.date(r).day == 1 else '0'))
-            return tuple(features)
-        try: 
-            for i in self.time_features:
-                list_of_features = [get_time_features(r) for r in data[i]]
 
-                dd = defaultdict(list)
+        for i in self.time_features:
+            try:
+                    data['day'] = data[i].dt.day
+            except:
+                None
+            try:
+                data['month'] = data[i].dt.month
+            except:
+                None
+            try:
+                data['year'] = data[i].dt.year
+            except:
+                None
+            try:
+                data['hour'] = data[i].dt.hour
+            except:
+                None
+            try:
+                data['minute'] = data[i].dt.minute
+            except:
+                None
+            try:
+                data['second'] = data[i].dt.second
+            except:
+                None
+            try:
+                data['quarter'] = data[i].dt.quarter
+            except:
+                None
+            try:
+                data['dayofweek'] = data[i].dt.dayofweek
+            except:
+                None
+            try:
+                data['weekday_name'] = data[i].dt.weekday_name
+                data['is_weekend'] = np.where(data['status_published'].isin(['Sunday','Saturday']),1,0)
+            except:
+                None
+            try:
+                data['dayofyear'] = data[i].dt.dayofyear
+            except:
+                None
+            try:
+                data['weekofyear'] = data[i].dt.weekofyear
+            except:
+                None
 
-                for x in list_of_features:
-                    for k, v in x:
-                        dd[k].append(v)
-
-                for k, v in dd.items():
-                    data[i+k] = v
-
-                # if hour is also choosen
-                if 'hour' in self.list_of_features:
-                    h = [datetime.time(r).hour for r in data[i]]
-                    if sum(h) > 0:
-                        data[i+"_hour"] = h
-                        data[i+"_hour"] = data[i+"_hour"].apply(str)
-
-            data.drop(self.time_features, axis=1, inplace=True)
-        except:
-            print("Make Time Feature can not be done!")
+        data.drop(self.time_features, axis=1, inplace=True)
         
         return data
     
@@ -486,6 +498,7 @@ def Supervised_Path(train_data, target_variable, ml_usecase=None,
                    time_features=[], features_to_drop=[],
                    imputation_type="simple imputer", numeric_imputation_strategy="mean", categorical_imputation_strategy='most frequent',
                    apply_zero_nearZero_variance=False,
+                #    make_time_feature=True, list_time_features=[], type_of_features=[],
                    apply_grouping=False, group_name=[], features_to_group_ListofList=[[]],
                    scale_data=False, scaling_method='zscore',
                    target_transformation=False, target_transformation_method='bc',
@@ -525,6 +538,9 @@ def Supervised_Path(train_data, target_variable, ml_usecase=None,
     else:
         imputer = Empty()
     
+
+    feature_time = Make_Time_Features()
+    
     if apply_zero_nearZero_variance == True:
         znz = Handle_Zero_NearZero_Variance(target=target_variable)
     else:
@@ -552,10 +568,6 @@ def Supervised_Path(train_data, target_variable, ml_usecase=None,
     else:
         pt_target = Empty()
         
-    try:
-        time_feature = Make_Time_Features()
-    except:
-        time_feature = Empty()
         
     pipe = Pipeline([
         ('dtypes', dtypes),
@@ -565,7 +577,7 @@ def Supervised_Path(train_data, target_variable, ml_usecase=None,
         ('scaling', scaling),
         ('p_transform', p_transform),
         ('pt_target', pt_target),
-        ('time_feature', time_feature)
+        ('feature_time', feature_time)
     ])
     
     if test_data is not None:

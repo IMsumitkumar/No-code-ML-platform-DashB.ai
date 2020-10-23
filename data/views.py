@@ -112,15 +112,15 @@ def Operation(request):
             power_transform = False if request.POST.get("power-transform") == 'YES' else True 
                    
 
-            try:
-                data = Supervised_Path(train_data=data, target_variable=target_variable,
-                                    time_features=time_features, features_to_drop=features_to_drop,numeric_imputation_strategy=numeric_imputation_strategy,
-                                    categorical_imputation_strategy=categoric_imputation_strategy, apply_zero_nearZero_variance=remove_zero_variance,
-                                    apply_grouping=False, group_name=[], features_to_group_ListofList=[[]],
-                                    scale_data=scale_and_transform, scaling_method=scale_and_transform_method,
-                                    target_transformation=target_transform, Power_transform_data=power_transform)
-            except Exception as e:
-                messages.error(request, "Columns are is override, Data can not be processed! OR you must roeload this page  "+ str(e))
+
+            data = Supervised_Path(train_data=data, target_variable=target_variable,
+                                time_features=time_features, features_to_drop=features_to_drop,numeric_imputation_strategy=numeric_imputation_strategy,
+                                categorical_imputation_strategy=categoric_imputation_strategy,
+                                apply_zero_nearZero_variance=remove_zero_variance,
+                                apply_grouping=False, group_name=[], features_to_group_ListofList=[[]],
+                                scale_data=scale_and_transform, scaling_method=scale_and_transform_method,
+                                target_transformation=target_transform, Power_transform_data=power_transform)
+
 
 
 
