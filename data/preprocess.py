@@ -1,7 +1,3 @@
-#!/usr/bin/env python
-# coding: utf-8
-
-
 import datetime
 import calendar
 import numpy as np
@@ -17,123 +13,181 @@ from sklearn.preprocessing import (StandardScaler, MinMaxScaler,
                                    OneHotEncoder, OrdinalEncoder,
                                    KBinsDiscretizer)
 
-class Handle_Datatype(BaseEstimator, TransformerMixin):
-
-    def __init__(self, target, ml_usecase, categorical_features=[], numerical_features=[], time_features=[],
-                 features_to_drop=[]):
-
-        self.replacement = {}
-        self.id_columns = []
+class Handle_Datatype(BaseEstimator,TransformerMixin):
+    def __init__(self,target,ml_usecase,categorical_features=[],numerical_features=[],time_features=[],features_todrop=[],display_types=True):
+        
         self.target = target
-        self.ml_usecase = ml_usecase
-        self.categorical_features = categorical_features
+        self.ml_usecase= ml_usecase
+        self.categorical_features =categorical_features
         self.numerical_features = numerical_features
-        self.time_features = time_features
-        self.features_to_drop = features_to_drop
-        
-    def fit(self, dataset, y=None):
+        self.time_features =time_features
+        self.features_todrop = features_todrop
+        self.display_types = display_types
+  
+    def fit(self,dataset,y=None):
         data = dataset.copy()
-        
-        # drop user given features
-        data.drop(columns=self.features_to_drop, errors='ignore', inplace=True)
-        
-        # replace inf in NaN values
-        data.replace([np.inf, -np.inf], np.NaN, inplace=True)
-        
+
+        # drop any columns that were asked to drop
+        data.drop(columns=self.features_todrop,errors='ignore',inplace=True)
+   
+        # if there are inf or -inf then replace them with NaN
+        data.replace([np.inf,-np.inf],np.NaN,inplace=True)
+
+        # also make sure that all the column names are string 
+        data.columns = [str(i) for i in data.columns]
+          
         # try to clean columns names
         data.columns = data.columns.str.replace(r'[\,\}\{\]\[\:\"\']','')
-        
-        # try to convert category features into integer if possible
+   
+        # try to convert categoric columns into numerical if possible
         for i in data.select_dtypes(include=['object']).columns:
             try:
-                data[i] = datap[i].astype('int64')
+                data[i] = data[i].astype('int64')
             except:
                 None
-        # convert boolean and category datatypes into categirical features
+    
+        # convert pandas bool and categorical into categorical datatype
         for i in data.select_dtypes(include=['bool', 'category']).columns:
             data[i] = data[i].astype('object')
-            
-        # handling datetime features
-        for i in data.select_dtypes(include=['object']).drop(self.target, axis=1, errors='ignore').columns:
+    
+  
+        # with csv format, if we have any null in a colum that was int -> panda will read it as float.
+        for i in data.select_dtypes(include=['float64']).columns:
+            na_count = sum(data[i].isna())
+            # count how many digits are there that have decimiles
+            count_float = np.nansum([ False if r.is_integer() else True for r in data[i]])
+            # total decimiels digits
+            count_float = count_float - na_count # reducing it because we know NaN is counted as a float digit
+            # now if there isnt any float digit , & unique levales are less than 20 and there are Na's then convert it to object
+            if ( (count_float == 0) & (data[i].nunique() <=20) & (na_count>0) ):
+                data[i] = data[i].astype('object')
+        
+
+
+        for i in data.select_dtypes(include=['float64']).columns:
+            if data[i].nunique()==2:
+                data[i]= data[i].apply(str)
+
+
+        for i in data.select_dtypes(include=['object']).drop(self.target,axis=1,errors='ignore').columns:
             try:
-                data[i] = pd.to_datetime(data[i], infer_datetime__format=True, utc=False, errors='raise')
+                data[i] = pd.to_datetime(data[i], infer_datetime_format=True, utc=False, errors='raise')
             except:
                 continue
-        # convert given numerical into numerical features
+
+        # now in case we were given any specific columns dtypes in advance , we will over ride theos 
         for i in self.categorical_features:
             try:
-                data[i] = data[i].apply(str)
+                data[i]=data[i].apply(str)
             except:
-                None
-                
-        # convert given categorical into categorical features
+                data[i]=dataset[i].apply(str)
+
         for i in self.numerical_features:
             try:
-                data[i] = data[i].apply('float64')
+                data[i]=data[i].astype('float64')
             except:
-                None
-                
-        # convert given datetime features into datetime features
+                data[i]=dataset[i].astype('float64')
+
         for i in self.time_features:
             try:
-                data[i] = pd.to_datetime(data[i], infer_datetime__format=True, utc=False, errors='raise').astype('datetime[ns]')
+                data[i] = pd.to_datetime(data[i], infer_datetime_format=True, utc=False, errors='raise')
             except:
-                None
-        
-        # time feature datatype hardcoding
+                data[i] = pd.to_datetime(dataset[i], infer_datetime_format=True, utc=False, errors='raise')
+
         for i in data.select_dtypes(include=['datetime64']).columns:
-            data[i] = data[i].astype('datetime[ns]')
+            data[i] = data[i].astype('datetime64[ns]')
+
+        # table of learent types
+        self.learent_dtypes = data.dtypes
+        #self.training_columns = data.drop(self.target,axis=1).columns
+
+        # if there are inf or -inf then replace them with NaN
+        data = data.replace([np.inf,-np.inf],np.NaN).astype(self.learent_dtypes)
         
-        # remove duplicates
-        data = data.loc[:, ~data.columns.duplicated()]
-        # remove NaN's
+        # lets remove dupllicates
+        #remove columns with duplicate name 
+        data = data.loc[:,~data.columns.duplicated()]
+        # Remove NAs
         data.dropna(axis=0, how='all', inplace=True)
         data.dropna(axis=1, how='all', inplace=True)
-
-        # remove the row if target column have any nan
+        # remove the row if target column has NA
         data = data[~data[self.target].isnull()]
-        
-        return data
-    
-    def transform(self, dataset, y=None):
+
+        return(data)
+
+    def transform(self,dataset,y=None):
         data = dataset.copy()
-        
-        # drop user given features
-        data.drop(self.features_to_drop, errors='ignore', inplace=True)
-        
-        # make sure all the columns are of string
+
+        # drop any columns that were asked to drop
+        data.drop(columns=self.features_todrop,errors='ignore',inplace=True)
+
+        # also make sure that all the column names are string 
         data.columns = [str(i) for i in data.columns]
-        
-        # reaplace inf into NaNs
-        data.replace([np.inf, -np.inf], np.NaN, inplace=True)
-        
+
+        # if there are inf or -inf then replace them with NaN
+        data.replace([np.inf,-np.inf],np.NaN,inplace=True)
+
+        # try to clean columns names
+        data.columns = data.columns.str.replace(r'[\,\}\{\]\[\:\"\']','')
+
+        #very first thing we need to so is to check if the training and test data hace same columns
+        #exception checking   
+        import sys
+
         for i in self.final_training_columns:
             if i not in data.columns:
-                print("Test data does not have columns" + str(i)+" which was used for training")
-        
+                print('(Type Error): test data does not have column ' + str(i) + " which was used for training")
+
+        ## we only need to take test columns that we used in ttaining (test in production may have a lot more columns)
         data = data[self.final_training_columns]
-        
-        return data
-    
-    def fit_transform(self, dataset, y=None):
-        data = dataset.copy()
+
+        # just keep picking the data and keep applying to the test data set (be mindful of target variable)
+        for i in data.columns: # we are taking all the columns in test , so we dot have to worry about droping target columnself.lea
+            if self.learent_dtypes[i].name == 'datetime64[ns]':
+                data[i] = pd.to_datetime(data[i], infer_datetime_format=True, utc=False, errors='coerce')
+            data[i] = data[i].astype(self.learent_dtypes[i])
+
+        return(data)
+
+        # fit_transform
+    def fit_transform(self,dataset,y=None):
+
+        data= dataset.copy()
+        # drop any columns that were asked to drop
+        data.drop(columns=self.features_todrop,errors='ignore',inplace=True)
+
+        # since this is for training , we dont nees any transformation since it has already been transformed in fit
         data = self.fit(data)
-        
-        # we need to treat the target variale if any accordingly
-        if (self.ml_usecase=='classification') & (data[self.target].dtypes=='object'):
+
+        # additionally we just need to treat the target variable
+        # for ml use ase
+        if ((self.ml_usecase == 'classification') &  (data[self.target].dtype=='object')):
             le = LabelEncoder()
             data[self.target] = le.fit_transform(np.array(data[self.target]))
-            
-            # now get the replacement dictionary
-            rev = le.inverse_transform(range(0, len(le.classes_)))
-            rep = np.array(range(0, len(le.classes_)))
-            for v, k in zip(rev, rep):
-                self.replacement[v] = k
-            
-            # for testing purpose
-            self.final_training_columns = data.drop(self.target, axis=1).columns
-            
-            return data
+
+            # now get the replacement dict
+            rev= le.inverse_transform(range(0,len(le.classes_)))
+            rep = np.array(range(0,len(le.classes_)))
+            self.replacement={}
+            for i,k in zip(rev,rep):
+                self.replacement[i] = k
+
+          # self.u = list(pd.unique(data[self.target]))
+          # self.replacement = np.arange(0,len(self.u))
+          # data[self.target]= data[self.target].replace(self.u,self.replacement)
+          # data[self.target] = data[self.target].astype('int64')
+          # self.replacement = pd.DataFrame(dict(target_variable=self.u,replaced_with=self.replacement))
+
+        # drop time columns
+        #data.drop(self.drop_time,axis=1,errors='ignore',inplace=True)
+
+        # drop id columns
+#         data.drop(self.id_columns,axis=1,errors='ignore',inplace=True)
+        # finally save a list of columns that we would need from test data set
+        self.final_training_columns = data.drop(self.target,axis=1).columns
+
+
+        return(data)
 
 class Handle_Missing(BaseEstimator, TransformerMixin):
     def __init__(self, target_variable, numeric_strategy, categorical_strategy):
@@ -141,71 +195,65 @@ class Handle_Missing(BaseEstimator, TransformerMixin):
         self.numeric_strategy = numeric_strategy
         self.categorical_strategy = categorical_strategy
         
-    def fit(self, dataset, y=None):
+    def fit(self,dataset,y=None): #
         def zeros(x):
             return 0
-        
+
         data = dataset.copy()
-        
-        # Numerical features
+        # make a table for numerical variable with strategy stats
         if self.numeric_strategy == 'mean':
-            self.numeric_stats = data.drop(self.target, axis=1).select_dtypes(include=['int64', 'float64']).apply(np.nanmean)
+            self.numeric_stats = data.drop(self.target,axis=1).select_dtypes(include=['float64','int64']).apply(np.nanmean)
         elif self.numeric_strategy == 'median':
-            self.numeric_stats = data.drop(self.target, axis=1).select_dtypes(include=['int64', 'float64']).apply(np.nanmedian)
-        elif self.numeric_strategy == 'std':
-            self.numeric_stats = data.drop(self.target, axis=1).select_dtypes(include=['int64', 'float64']).apply(np.nanstd)
-        elif self.numeric_strategy == 'mode':
-            self.numeric_stats = data.drop(self.target, axis=1).select_dtypes(include=['int64', 'float64']).apply(np.nanmedian)
-        elif self.numeric_strategy == 'zero':
-            self.numeric_stats = data.drop(self.target, axis=1).select_dtypes(include=['int64', 'float64']).apply(zeros)
+            self.numeric_stats = data.drop(self.target,axis=1).select_dtypes(include=['float64','int64']).apply(np.nanmedian)
         else:
-            self.numeric_stats = data.drop(self.target, axis=1).select_dtypes(include=['int64', 'float64']).apply(zeros)
-        
-        self.numeric_columns = data.drop(self.target, axis=1).select_dtypes(include=['float64', 'int64']).columns
-        
-        # Categorical features
+            self.numeric_stats = data.drop(self.target,axis=1).select_dtypes(include=['float64','int64']).apply(zeros)
+
+        self.numeric_columns = data.drop(self.target,axis=1).select_dtypes(include=['float64','int64']).columns
+
+        #for Catgorical , 
         if self.categorical_strategy == 'most frequent':
-            self.categorical_columns = data.drop(self.target, axis=1).select_dtypes(include=['object']).columns
-            self.categoric_stats = pd.DataFrame(columns=self.categorical_columns)
-            for i in self.categoric_stats.columns:
-                self.categoric_stats.loc[0, i] = data[i].value_counts().index[0]
+            self.categorical_columns = data.drop(self.target,axis=1).select_dtypes(include=['object']).columns
+            self.categorical_stats = pd.DataFrame(columns=self.categorical_columns) # place holder
+            for i in (self.categorical_stats.columns):
+                self.categorical_stats.loc[0,i] = data[i].value_counts().index[0]
         else:
-            self.categorical_columns = data.drop(self.target, axis=1).select_dtypes(include=['object']).columns
-        
-        # datatime features
-        self.time_columns = data.drop(self.target, axis=1).select_dtypes(include=['datetime64[ns]']).columns
-        self.time_stats = pd.DataFrame(columns=self.time_columns)
-        for i in self.time_columns:
-            self.time_stats.loc[0, i] = data[i].value_counts().index[0]
-            
-        return data
+            self.categorical_columns = data.drop(self.target,axis=1).select_dtypes(include=['object']).columns
     
-    def transform(self, dataset, y=None):
-        data = dataset.copy()
-        
-        # for numeric
-        for i, s in zip(data[self.numeric_columns].columns, self.numeric_stats):
-            data[i].fillna(s, inplace=True)
-        
-        # for categoric
+        # for time, there is only one way, pick up the most frequent one
+        self.time_columns = data.drop(self.target,axis=1).select_dtypes(include=['datetime64[ns]']).columns
+        self.time_stats = pd.DataFrame(columns=self.time_columns) # place holder
+        for i in (self.time_columns):
+            self.time_stats.loc[0,i] = data[i].value_counts().index[0]
+        return(data)
+       
+    
+    def transform(self,dataset,y=None):
+        data = dataset.copy() 
+        # for numeric columns
+        for i,s in zip(data[self.numeric_columns].columns,self.numeric_stats):
+            data[i].fillna(s,inplace=True)
+    
+        # for categorical columns
         if self.categorical_strategy == 'most frequent':
-            for i in self.categoric_stats.columns:
-                
-                data[i] = data[i].fillna(self.categoric_stats.loc[0, i])
-                data[i] = data[i].apply(str)
+            for i in (self.categorical_stats.columns):
+                #data[i].fillna(self.categorical_stats.loc[0,i],inplace=True)
+                data[i] = data[i].fillna(self.categorical_stats.loc[0,i])
+                data[i] = data[i].apply(str)    
         else:
-            for i in self.categorical_columns:
-                data[i].fillna("not available", inplace=True)
+            # this means replace na with "not_available"
+            for i in (self.categorical_columns):
+                data[i].fillna("not_available",inplace=True)
                 data[i] = data[i].apply(str)
-                
-        # for datetime
-        for i in self.time_stats.columns:
-            data[i].fillna(self.time_stats.loc[0, i], inplace=True)
-        
-        return data
+        # for time
+        for i in (self.time_stats.columns):
+            
+            data[i].fillna(self.time_stats.loc[0,i],inplace=True)
+    
+        return(data)
     
     def fit_transform(self, dataset, y=None):
         data= dataset.copy()
+        
         data = self.fit(data)
         return self.transform(data)
     
@@ -466,7 +514,7 @@ def Supervised_Path(train_data, target_variable, ml_usecase=None,
         subcase = 'binary'
         
     dtypes = Handle_Datatype(target=target_variable, ml_usecase=ml_usecase, categorical_features=categorical_features,
-                            numerical_features=numerical_features, time_features=time_features, features_to_drop=features_to_drop)
+                            numerical_features=numerical_features, time_features=time_features, features_todrop=features_to_drop)
     
     if imputation_type == 'simple imputer':
         try:
@@ -524,4 +572,3 @@ def Supervised_Path(train_data, target_variable, ml_usecase=None,
         return pipe.fit_transform(train_data), pipe.transform(test_data)
     else:
         return pipe.fit_transform(train_data)
-

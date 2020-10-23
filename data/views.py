@@ -86,7 +86,6 @@ def dashBoard(request):
 
 @login_required()
 def Operation(request):
-    global code_operation
     operations = {}
     column_name = []
     data_operation = []
@@ -104,23 +103,24 @@ def Operation(request):
             numeric_imputation_strategy = request.POST.get("num-stats") or None
             categoric_imputation_strategy = request.POST.get("cat-stats") or None
             remove_zero_variance = True if request.POST.get("rm-var") == 'YES' else False                  
-            group_sim_features = True if request.POST.get("gp-sim-feature") == 'YES' else False        
-            sim_group_name = request.POST.getlist("gp-sim-feature-name") or None
+            group_sim_features = False if request.POST.get("gp-sim-feature") == 'YES' else True      
+            sim_group_name = request.POST.getlist("gp-sim-gp-name") or empty_list
             sim_feature_list = request.POST.getlist("gp-sim-feature-list") or empty_list
             scale_and_transform = False if request.POST.get("scale") == 'YES' else True                   
             scale_and_transform_method = request.POST.get("scale-method") or None
             target_transform = False if request.POST.get("target-transform") == 'YES' else True            
             power_transform = False if request.POST.get("power-transform") == 'YES' else True 
+                   
 
-            print(remove_zero_variance)              
-
-
-            data = Supervised_Path(train_data=data, target_variable=target_variable,
-                                time_features=time_features, features_to_drop=features_to_drop,numeric_imputation_strategy=numeric_imputation_strategy,
-                                categorical_imputation_strategy=categoric_imputation_strategy, apply_zero_nearZero_variance=remove_zero_variance,
-                                apply_grouping=group_sim_features, group_name=sim_group_name, features_to_group_ListofList=[sim_feature_list],
-                                scale_data=scale_and_transform, scaling_method=scale_and_transform_method,
-                                target_transformation=target_transform, Power_transform_data=power_transform)
+            try:
+                data = Supervised_Path(train_data=data, target_variable=target_variable,
+                                    time_features=time_features, features_to_drop=features_to_drop,numeric_imputation_strategy=numeric_imputation_strategy,
+                                    categorical_imputation_strategy=categoric_imputation_strategy, apply_zero_nearZero_variance=remove_zero_variance,
+                                    apply_grouping=False, group_name=[], features_to_group_ListofList=[[]],
+                                    scale_data=scale_and_transform, scaling_method=scale_and_transform_method,
+                                    target_transformation=target_transform, Power_transform_data=power_transform)
+            except Exception as e:
+                messages.error(request, "Columns are is override, Data can not be processed! OR you must roeload this page  "+ str(e))
 
 
 
