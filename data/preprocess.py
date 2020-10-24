@@ -478,6 +478,120 @@ class Make_Time_Features(BaseEstimator, TransformerMixin):
             self.time_features = data.select_dtypes(include=['datetime64[ns]']).columns
         
         return self.transform(data)
+
+class OrdinalEncoding(BaseEstimator, TransformerMixin):
+    def __init__(self,target, ordinal_type='simple label', features_to_encode=[]):
+        self.target = target
+        self.ordinal_type = ordinal_type
+        self.features_to_encode = features_to_encode
+    
+    def fit(self, dataset, y=None):
+        return None
+    
+    def transform(self, dataset, y=None):
+        data = dataset.copy()
+        if ordinal_type == 'simple label':
+            for i in self.features_to_encode:
+                data[i] = self.le.fit_transform(data[i])
+        elif self.ordinal_type == 'target guided':
+            for i in self.features_to_encode:
+                data[i] = data[i].map(self.cat_dict)
+        else:
+            data = data
+            
+            
+        return data
+    
+    def fit_transform(self, dataset, y=None):
+        data = dataset.copy()
+        self.le = LabelEncoder()
+        if not self.features_to_encode:
+            self.features_to_encode = data.select_dtypes(include=['object']).columns
+            
+        if self.ordinal_type == 'simple label':
+            for i in self.features_to_encode:
+                data[i] = self.le.fit_transform(data[i])
+        elif self.ordinal_type == 'target guided':
+            for i in self.features_to_encode:
+                self.cat_labels = data.groupby([i])[self.target].mean().sort_values().index
+                self.cat_dict = {k:v for v,k in enumerate(self.cat_labels, 0)}
+                data[i] = data[i].map(self.cat_dict)
+        else:
+            data = data
+        
+        
+        return data
+
+class NominalEncoding(BaseEstimator, TransformerMixin):
+    def __init__(self, target, top, nominal_type='frequency encoding', features_to_encode=[]):
+        self.target = target
+        self.top = top
+        self.nominal_type = nominal_type
+        self.features_to_encode = features_to_encode
+
+    def fit(self, dataset, y=None):
+        return None
+    
+    def transform(self, dataset, y=None):
+        data = dataset.copy()
+        for i in self.features_to_encode:
+            if self.nominal_type == 'one hot' and len(data[i].unique()) > 20:
+                self.nominal_type = 'kdd orange'
+                
+            if self.nominal_type == 'one hot':
+                encoded_data = pd.get_dummies(data[i])
+                data = data.join(encoded_data, how='left').drop(columns=[i])
+                
+            elif self.nominal_type == 'kdd orange':
+                for cat in self.top_category:
+                    data[cat] = np.where(data.loc[:, i]==cat, 1, 0)
+                data.drop(columns=i,errors='ignore', inplace=True)
+                
+            elif self.nominal_type == 'mean encoding':
+                data[i] = data[i].map(self.mean_dict)
+            
+            elif self.nominal_type == 'frequency encoding':
+                data[i] = data[i].map(self.count_dict)
+                
+            else:
+                data = data
+            
+        return data
+    
+    def fit_transform(self, dataset, y=None):
+        data = dataset.copy()
+        
+        if not self.features_to_encode:
+            self.features_to_encode = data.select_dtypes(include=['object']).columns
+        
+            
+        for i in self.features_to_encode:
+            if self.nominal_type == 'one hot' and len(data[i].unique()) > 20:
+                self.nominal_type = 'kdd orange'
+                
+            if self.nominal_type == 'one hot':
+                encoded_data = pd.get_dummies(data[i])
+                data = data.join(encoded_data, how='left').drop(columns=[i])
+                
+            elif self.nominal_type == 'kdd orange':
+                self.top_category = list(data[i].value_counts().sort_values(ascending=False).head(self.top).index)
+                for category in self.top_category:
+                    data[category] = np.where(data.loc[:,i]==category, 1, 0)
+                    
+                data.drop(columns=i, errors='ignore', inplace=True)
+                
+            elif self.nominal_type == 'mean encoding':
+                self.mean_dict = data.groupby([i])[self.target].mean().to_dict()
+                data[i] = data[i].map(self.mean_dict)
+                
+            elif self.nominal_type == 'frequency encoding':
+                self.count_dict = data[i].value_counts().to_dict()
+                data[i] = data[i].map(self.count_dict)
+                
+            else:
+                data = data
+            
+        return data
             
 
 class Empty(BaseEstimator, TransformerMixin):

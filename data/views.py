@@ -1,5 +1,9 @@
 import os
 import pandas as pd
+import seaborn as sns
+import numpy as np
+import plotly.graph_objects as go
+import plotly.express as px
 from django.shortcuts import render, redirect, resolve_url
 from django.http import HttpResponse
 from .models import DataSet, ProcessedDataSet
@@ -10,6 +14,7 @@ from django.contrib import messages
 from .preprocess import Supervised_Path
 import json2html
 from .get_db_data import *
+
 
 @login_required()
 def upload_data(request):
@@ -41,7 +46,6 @@ def upload_data(request):
 
 @login_required()
 def dashBoard(request):
-    global obj
 
     if DataSet.objects.filter(user=request.user).count() == 0:
         messages.error(request, "Please upload the data first.")
@@ -66,7 +70,12 @@ def dashBoard(request):
     cat_null_desc = datatype_nullCount(df, categorical_data)
     num_null_desc = datatype_nullCount(df, numerical_data)
 
-    correlation = df.corr()
+    # matrix = np.triu(df.corr())
+    # correlation = sns.heatmap(df.corr(), annot=True, mask=matrix)
+    try:
+        correlation = px.imshow(df.corr(), width=1000, height=500)
+    except:
+        correlation = df.corr()
 
     context = {
         'rows': data_shape[0],
@@ -78,7 +87,6 @@ def dashBoard(request):
         'num_desc': num_null_desc,
         'cat_desc': cat_null_desc,
         'corr': correlation.to_html(),
-
     }
 
     return render(request, 'data/boot.html', context)
@@ -100,26 +108,41 @@ def Operation(request):
             target_variable = request.POST.get("target-col") or None
             time_features = request.POST.getlist("time-features") or empty_list
             features_to_drop = request.POST.getlist("toDrop-features") or empty_list
-            numeric_imputation_strategy = request.POST.get("num-stats") or None
-            categoric_imputation_strategy = request.POST.get("cat-stats") or None
-            remove_zero_variance = True if request.POST.get("rm-var") == 'YES' else False                  
-            group_sim_features = False if request.POST.get("gp-sim-feature") == 'YES' else True      
+            numeric_imputation_strategy = request.POST.get("num-stats") or 'zscore'
+            categoric_imputation_strategy = request.POST.get("cat-stats") or 'most frequent'
+            remove_zero_variance = True if request.POST.get("rm-var") == 'yes' else False                  
+            group_sim_features = True if request.POST.get("gp-sim-feature") == 'yes' else False     
             sim_group_name = request.POST.getlist("gp-sim-gp-name") or empty_list
             sim_feature_list = request.POST.getlist("gp-sim-feature-list") or empty_list
-            scale_and_transform = False if request.POST.get("scale") == 'YES' else True                   
+            scale_and_transform = True if request.POST.get("scale-data") == 'yes' else False             
             scale_and_transform_method = request.POST.get("scale-method") or None
-            target_transform = False if request.POST.get("target-transform") == 'YES' else True            
-            power_transform = False if request.POST.get("power-transform") == 'YES' else True 
-                   
+            target_transform = True if request.POST.get("target-transform") == 'yes' else False            
+            power_transform = True if request.POST.get("power-transform") == 'yes' else False 
 
+            # print("target variable :",target_variable)
+            # print("time_features :",time_features)
+            # print("features_to_drop :", features_to_drop)
+            # print("numeric_imputation_strategy :", numeric_imputation_strategy)
+            # print("categoric_imputation_strategy :", categoric_imputation_strategy)
+            # print("sim_group_name :", sim_group_name)
+            # print("sim_feature_list :", sim_feature_list)
+            # print("scale_and_transform_method :",scale_and_transform_method)
+            # print("remove_zero_variance : ",remove_zero_variance)
+            # print("group_sim_features :",group_sim_features)
+            # print("scale_and_transform :",scale_and_transform)
+            # print("target_transform :",target_transform)
+            # print("power_transform :",power_transform)
 
-            data = Supervised_Path(train_data=data, target_variable=target_variable,
+            try:
+                data = Supervised_Path(train_data=data, target_variable=target_variable,
                                 time_features=time_features, features_to_drop=features_to_drop,numeric_imputation_strategy=numeric_imputation_strategy,
                                 categorical_imputation_strategy=categoric_imputation_strategy,
                                 apply_zero_nearZero_variance=remove_zero_variance,
-                                apply_grouping=False, group_name=[], features_to_group_ListofList=[[]],
+                                apply_grouping=group_sim_features, group_name=sim_group_name, features_to_group_ListofList=[sim_feature_list],
                                 scale_data=scale_and_transform, scaling_method=scale_and_transform_method,
                                 target_transformation=target_transform, Power_transform_data=power_transform)
+            except:
+                messages.error(request, "Target column is not selected")
 
 
 
