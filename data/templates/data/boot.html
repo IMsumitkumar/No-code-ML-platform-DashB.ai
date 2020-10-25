@@ -30,6 +30,9 @@
     .mul-select{
         width:450px;
         }
+    .mul-select1{
+        width:300px;
+        }
 
     table {
       border: 1px solid white;
@@ -322,6 +325,56 @@
                                 </select>
                               </div>
                               <br>
+                              <label style="color:#000000;"><strong>Encode Nominal Features</strong></label>
+                              <select name="nominal" class="custom-select" id="nominal-encode">
+                                  <option value="no">NO</option>
+                                  <option value="yes">YES</option>
+                              </select>
+                              <br>
+                              <br>
+                              <div class="form-group" id="nominal-encodeDiv">
+                                <select name="nomainl-method" class="custom-select" id="top-features">
+                                  <option value="one hot">one hot</option>
+                                  <option value="kdd orange">kdd orange</option>
+                                  <option value="mean encoding">mean encoding</option>
+                                  <option value="frequency encode">frequency encode</option>
+                                </select>
+                                <br>
+                                <br>
+                                <label style="color:#000000;"><p>Select nominal features to encode</p></label>
+                                <select style="width: 300px;" name="nominal-features" class="mul-select" multiple="true">
+                                  <option value=""></option>
+                                  {% for col in data_columns %}
+                                  <option value={{col}}>{{col}}</option>
+                                  {% endfor %}
+                                </select>
+                                <label for="a" style="color:#000000;"><p>TOP</p>
+                                <input name="top-features" style="width: 85px;" type="number" value="10" min="0" max="1000" step="2"/></label>
+                              </div>
+                              <br>
+                              <label style="color:#000000;"><strong>Encode Ordinal Features</strong></label>
+                              <select name="ordinal" class="custom-select" id="ordinal-encode">
+                                  <option value="no">NO</option>
+                                  <option value="yes">YES</option>
+                              </select>
+                              <br>
+                              <br>
+                              <div class="form-group" id="ordinal-encodeDiv">
+                                <select name="ordinal-method" class="custom-select">
+                                  <option>simple label</option>
+                                  <option>target guided</option>
+                                </select>
+                                <br>
+                                <br>
+                                <label style="color:#000000;">Select ordinal features to encode</label>
+                                <select name="ordinal-features" class="mul-select" multiple="true">
+                                  <option value=""></option>
+                                  {% for col in data_columns %}
+                                  <option value={{col}}>{{col}}</option>
+                                  {% endfor %}
+                                </select>
+                              </div>
+                              <br>
                               <label style="color:#000000;"><strong>Target Transform</strong></label>
                               <select name="target-transform" class="custom-select">
                                 <option value="no">NO</option>
@@ -507,6 +560,32 @@
       });
       $("#scale-data").trigger("change");
 
+      $("#nominal-encode").change(function() {
+        if ($(this).val() == "yes") {
+          $('#nominal-encodeDiv').show()
+          $('#nominal-features-select').attr('required','');
+				  $('#nominal-features-select').attr('data-error', 'This field is required.');
+        } else {
+          $('#nominal-encodeDiv').hide();
+				  $('#nominal-features-select').removeAttr('required');
+				  $('#nominal-features-select').removeAttr('data-error');
+        }
+      });
+      $("#nominal-encode").trigger("change");
+
+      $("#ordinal-encode").change(function() {
+        if ($(this).val() == "yes") {
+          $('#ordinal-encodeDiv').show()
+          $('#ordinal-features-select').attr('required','');
+				  $('#ordinal-features-select').attr('data-error', 'This field is required.');
+        } else {
+          $('#ordinal-encodeDiv').hide();
+				  $('#ordinal-features-select').removeAttr('required');
+				  $('#ordinal-features-select').removeAttr('data-error');
+        }
+      });
+      $("#ordinal-encode").trigger("change");
+
 
 
         setTimeout(function (){
@@ -514,7 +593,7 @@
                 $('#msg').remove();
             }
         }, 4000 )
-
+      
 
     </script>
 

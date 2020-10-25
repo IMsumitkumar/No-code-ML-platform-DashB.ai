@@ -12,6 +12,10 @@ from sklearn.preprocessing import (StandardScaler, MinMaxScaler,
                                    PowerTransformer, QuantileTransformer,
                                    OneHotEncoder, OrdinalEncoder,
                                    KBinsDiscretizer)
+from pyod.models.knn import KNN
+from pyod.models.iforest import IForest
+from pyod.models.pca import PCA as PCA_RO
+from sklearn.covariance import EllipticEnvelope
 
 class Handle_Datatype(BaseEstimator,TransformerMixin):
     def __init__(self,target,ml_usecase,categorical_features=[],numerical_features=[],time_features=[],features_todrop=[],display_types=True):
@@ -153,14 +157,11 @@ class Handle_Datatype(BaseEstimator,TransformerMixin):
     def fit_transform(self,dataset,y=None):
 
         data= dataset.copy()
-        # drop any columns that were asked to drop
         data.drop(columns=self.features_todrop,errors='ignore',inplace=True)
 
-        # since this is for training , we dont nees any transformation since it has already been transformed in fit
         data = self.fit(data)
 
-        # additionally we just need to treat the target variable
-        # for ml use ase
+        # additionally we just need to treat the target variable for ml usecase
         if ((self.ml_usecase == 'classification') &  (data[self.target].dtype=='object')):
             le = LabelEncoder()
             data[self.target] = le.fit_transform(np.array(data[self.target]))
@@ -172,18 +173,6 @@ class Handle_Datatype(BaseEstimator,TransformerMixin):
             for i,k in zip(rev,rep):
                 self.replacement[i] = k
 
-          # self.u = list(pd.unique(data[self.target]))
-          # self.replacement = np.arange(0,len(self.u))
-          # data[self.target]= data[self.target].replace(self.u,self.replacement)
-          # data[self.target] = data[self.target].astype('int64')
-          # self.replacement = pd.DataFrame(dict(target_variable=self.u,replaced_with=self.replacement))
-
-        # drop time columns
-        #data.drop(self.drop_time,axis=1,errors='ignore',inplace=True)
-
-        # drop id columns
-#         data.drop(self.id_columns,axis=1,errors='ignore',inplace=True)
-        # finally save a list of columns that we would need from test data set
         self.final_training_columns = data.drop(self.target,axis=1).columns
 
 
@@ -480,7 +469,7 @@ class Make_Time_Features(BaseEstimator, TransformerMixin):
         return self.transform(data)
 
 class OrdinalEncoding(BaseEstimator, TransformerMixin):
-    def __init__(self,target, ordinal_type='simple label', features_to_encode=[]):
+    def __init__(self,target, ordinal_type, features_to_encode=[]):
         self.target = target
         self.ordinal_type = ordinal_type
         self.features_to_encode = features_to_encode
@@ -523,7 +512,7 @@ class OrdinalEncoding(BaseEstimator, TransformerMixin):
         return data
 
 class NominalEncoding(BaseEstimator, TransformerMixin):
-    def __init__(self, target, top, nominal_type='frequency encoding', features_to_encode=[]):
+    def __init__(self, target, top, nominal_type, features_to_encode=[]):
         self.target = target
         self.top = top
         self.nominal_type = nominal_type
@@ -592,6 +581,60 @@ class NominalEncoding(BaseEstimator, TransformerMixin):
                 data = data
             
         return data
+    
+# https://machinelearningmastery.com/model-based-outlier-detection-and-removal-in-python/
+# https://towardsdatascience.com/outlier-detection-with-isolation-forest-3d190448d45e
+class Remove_Outliers(BaseEstimator,TransformerMixin):
+    def __init__(self,target,contamination=.20, random_state=42, methods=['knn','iso','mcd']):
+        
+        self.target = target
+        self.contamination = contamination
+        self.random_state = random_state
+        self.methods = methods
+
+    def fit(self,data,y=None):
+        return(None)
+
+    def transform(self,data,y=None):
+        return(data)
+
+    def fit_transform(self,dataset,y=None):
+        data = dataset.copy()
+        
+        if 'iso' in self.methods:
+            self.iso_forest = IForest(contamination=self.contamination,random_state=self.random_state,behaviour='new')
+            self.iso_forest.fit(data.drop(self.target,axis=1))
+            iso_predict = self.iso_forest.predict(data.drop(self.target,axis=1))
+            data['iso'] = iso_predict
+        
+        if 'knn' in self.methods:
+            self.knn_out = KNN(contamination=self.contamination)
+            self.knn_out.fit(data.drop(self.target,axis=1))
+            knn_predict = self.knn_out.predict(data.drop(self.target,axis=1))
+            data['knn'] = knn_predict
+            
+        if 'pca' in self.methods:
+            self.out_pca = PCA_RO(contamination=self.contamination,random_state=self.random_state)
+            self.out_pca.fit(data.drop(self.target,axis=1))
+            pca_predict = self.out_pca.predict(data.drop(self.target,axis=1))
+            data['pca'] = pca_predict
+        
+        # use for those features which are gaussian distributed
+        if 'mcd' in self.methods:
+            self.mcd = EllipticEnvelope(contamination=0.01)
+            self.mcd.fit(data.drop(self.target, axis=1))
+            mcd_predict = self.mcd.predict(data.drop(self.target, axis=1))
+            data['mcd'] = mcd_predict
+
+        data['vote_outlier'] = 0
+    
+        for i in self.methods:
+            data['vote_outlier'] = data['vote_outlier'] + data[i]
+    
+
+        self.outliers = data[data['vote_outlier']== len(self.methods)]
+    
+        return dataset[[True if i not in self.outliers.index else False for i in dataset.index]]
             
 
 class Empty(BaseEstimator, TransformerMixin):
@@ -612,9 +655,11 @@ def Supervised_Path(train_data, target_variable, ml_usecase=None,
                    time_features=[], features_to_drop=[],
                    imputation_type="simple imputer", numeric_imputation_strategy="mean", categorical_imputation_strategy='most frequent',
                    apply_zero_nearZero_variance=False,
-                #    make_time_feature=True, list_time_features=[], type_of_features=[],
+                   nominal_encoding=True, top=10, nominal_encoding_method = 'frequency encoding', features_for_nominal_encode=[],
+                   ordinal_encoding=True, ordinal_encoding_method = 'kdd orange', features_for_ordinal_encode=[],
                    apply_grouping=False, group_name=[], features_to_group_ListofList=[[]],
                    scale_data=False, scaling_method='zscore',
+                   remove_outliers=True, outlier_methods=['iso'],
                    target_transformation=False, target_transformation_method='bc',
                    Power_transform_data=False, Power_transform_method='quantile',
                    random_state=42):
@@ -676,7 +721,22 @@ def Supervised_Path(train_data, target_variable, ml_usecase=None,
                                                       random_state_quantile=random_state)
     else:
         p_transform = Empty()
-        
+
+    if nominal_encoding == True:
+        nominal = NominalEncoding(target=target_variable, top=top, nominal_type = nominal_encoding_method, features_to_encode=features_for_nominal_encode)
+    else:
+        nominal = Empty()
+    
+    if ordinal_encoding == True:
+        ordinal = OrdinalEncoding(target=target_variable, ordinal_type=ordinal_encoding_method, features_to_encode=features_for_ordinal_encode)
+    else:
+        ordinal = Empty()
+
+    if remove_outliers == True:
+        remove_outlier = Remove_Outliers(target=target_variable, methods=outlier_methods)
+    else:
+        remove_outlier = Empty()
+
     if (target_transformation == True) and (ml_usecase == 'regression'):
         pt_target = Target_Transformation(target=target_variable, function_to_apply=target_transformation_method)
     else:
@@ -691,7 +751,10 @@ def Supervised_Path(train_data, target_variable, ml_usecase=None,
         ('scaling', scaling),
         ('p_transform', p_transform),
         ('pt_target', pt_target),
-        ('feature_time', feature_time)
+        ('feature_time', feature_time),
+        ('nominal', nominal),
+        ('ordinal', ordinal),
+        ('remove_outliers', remove_outlier)
     ])
     
     if test_data is not None:

@@ -87,6 +87,7 @@ def dashBoard(request):
         'num_desc': num_null_desc,
         'cat_desc': cat_null_desc,
         'corr': correlation.to_html(),
+        'cat_column':categorical_data,
     }
 
     return render(request, 'data/boot.html', context)
@@ -118,20 +119,14 @@ def Operation(request):
             scale_and_transform_method = request.POST.get("scale-method") or None
             target_transform = True if request.POST.get("target-transform") == 'yes' else False            
             power_transform = True if request.POST.get("power-transform") == 'yes' else False 
+            nominal = True if request.POST.get("nominal") == 'yes' else False  
+            ordinal = True if request.POST.get("ordinal") == 'yes' else False  
+            nominal_method = request.POST.get("nominal-method") or 'kdd orange'
+            ordinal_method = request.POST.get("ordinal-method") or 'target guided'
+            nominal_features = request.POST.getlist("nominal-features") or empty_list
+            ordinal_features = request.POST.getlist("ordinal-features") or empty_list
+            top_features_for_kdd = request.POST.get("top-features") or 10
 
-            # print("target variable :",target_variable)
-            # print("time_features :",time_features)
-            # print("features_to_drop :", features_to_drop)
-            # print("numeric_imputation_strategy :", numeric_imputation_strategy)
-            # print("categoric_imputation_strategy :", categoric_imputation_strategy)
-            # print("sim_group_name :", sim_group_name)
-            # print("sim_feature_list :", sim_feature_list)
-            # print("scale_and_transform_method :",scale_and_transform_method)
-            # print("remove_zero_variance : ",remove_zero_variance)
-            # print("group_sim_features :",group_sim_features)
-            # print("scale_and_transform :",scale_and_transform)
-            # print("target_transform :",target_transform)
-            # print("power_transform :",power_transform)
 
             try:
                 data = Supervised_Path(train_data=data, target_variable=target_variable,
@@ -139,10 +134,12 @@ def Operation(request):
                                 categorical_imputation_strategy=categoric_imputation_strategy,
                                 apply_zero_nearZero_variance=remove_zero_variance,
                                 apply_grouping=group_sim_features, group_name=sim_group_name, features_to_group_ListofList=[sim_feature_list],
+                                nominal_encoding=nominal, top=int(top_features_for_kdd), nominal_encoding_method =nominal_method, features_for_nominal_encode=nominal_features,
+                                ordinal_encoding=ordinal, ordinal_encoding_method =ordinal_method, features_for_ordinal_encode=ordinal_features,
                                 scale_data=scale_and_transform, scaling_method=scale_and_transform_method,
                                 target_transformation=target_transform, Power_transform_data=power_transform)
-            except:
-                messages.error(request, "Target column is not selected")
+            except Exception as e:
+                messages.error(request, "Target column is not selected"+str(e))
 
 
 
