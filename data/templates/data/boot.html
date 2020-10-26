@@ -306,7 +306,7 @@
                                   </select>
                                 </div>
                               </div>
-                              <br>
+                              
                               <label style="color:#000000;"><strong>Scale and Transform</strong></label>
                               <select name="scale-data" class="custom-select" id="scale-data">
                                   <option value="no">NO</option>
@@ -315,6 +315,7 @@
                               <br>
                               <br>
                               <div class="form-group" id="add-scale-dataDiv">
+                                <label style="color:#000000;"><p>Select scaling method</p></label>
                                 <select name="scale-method" class="custom-select">
                                   <option>zscore</option>
                                   <option>minmax</option>
@@ -324,7 +325,7 @@
                                   <option>quantile</option>
                                 </select>
                               </div>
-                              <br>
+                              
                               <label style="color:#000000;"><strong>Encode Nominal Features</strong></label>
                               <select name="nominal" class="custom-select" id="nominal-encode">
                                   <option value="no">NO</option>
@@ -333,6 +334,7 @@
                               <br>
                               <br>
                               <div class="form-group" id="nominal-encodeDiv">
+                                <label style="color:#000000;"><p>Select nominal method</p></label>
                                 <select name="nomainl-method" class="custom-select" id="top-features">
                                   <option value="one hot">one hot</option>
                                   <option value="kdd orange">kdd orange</option>
@@ -351,7 +353,6 @@
                                 <label for="a" style="color:#000000;"><p>TOP</p>
                                 <input name="top-features" style="width: 85px;" type="number" value="10" min="0" max="1000" step="2"/></label>
                               </div>
-                              <br>
                               <label style="color:#000000;"><strong>Encode Ordinal Features</strong></label>
                               <select name="ordinal" class="custom-select" id="ordinal-encode">
                                   <option value="no">NO</option>
@@ -360,6 +361,7 @@
                               <br>
                               <br>
                               <div class="form-group" id="ordinal-encodeDiv">
+                                <label style="color:#000000;"><p>select ordinal method</p></label>
                                 <select name="ordinal-method" class="custom-select">
                                   <option>simple label</option>
                                   <option>target guided</option>
@@ -374,7 +376,44 @@
                                   {% endfor %}
                                 </select>
                               </div>
+                              
+                              <label style="color:#000000;"><strong>Remove outliers</strong></label>
+                              <select name="remove-outlier" class="custom-select" id="remove-outlier">
+                                  <option value="no">NO</option>
+                                  <option value="yes">YES</option>
+                              </select>
                               <br>
+                              <br>
+                              <div class="form-group" id="remove-outlierDiv">
+                                <label style="color:#000000;"><p>Select methods to remove outliers</p></label>
+                                <select name="remove-outlier-method" class="mul-select" multiple="true">
+                                  <option>iso</option>
+                                  <option>knn</option>
+                                  <option>pca</option>
+                                  <option>mcd</option>
+                                </select>
+                              </div>
+                              
+                              <label style="color:#000000;"><strong>Feature Selection</strong></label>
+                              <select name="feature-selection" class="custom-select" id="feature-selection">
+                                  <option value="no">NO</option>
+                                  <option value="yes">YES</option>
+                              </select>
+                              <br>
+                              <br>
+                              <div class="form-group" id="feature-selectionDiv">
+                                <label style="color:#000000;"><p>select feature selection methods</p></label>
+                                <select style="width: 300px;" name="feature-selection-methods" class="custom-select">
+                                  <option>lgbm</option>
+                                  <option>lasso</option>
+                                  <option>random forest</option>
+                                  <option>RFE</option>
+                                  <option>chi</option> 
+                                </select>
+                                <label for="a" style="color:#000000;"><p>LIMIT</p>
+                                <input name="limit-features" style="width: 85px;" type="number" value="10" min="0" max="1000" step="2"/></label>
+                              </div>
+
                               <label style="color:#000000;"><strong>Target Transform</strong></label>
                               <select name="target-transform" class="custom-select">
                                 <option value="no">NO</option>
@@ -585,6 +624,25 @@
         }
       });
       $("#ordinal-encode").trigger("change");
+
+      $("#remove-outlier").change(function() {
+        if ($(this).val() == "yes") {
+          $('#remove-outlierDiv').show()
+        } else {
+          $('#remove-outlierDiv').hide();
+        }
+      });
+      $("#remove-outlier").trigger("change");
+
+
+      $("#feature-selection").change(function() {
+        if ($(this).val() == "yes") {
+          $('#feature-selectionDiv').show()
+        } else {
+          $('#feature-selectionDiv').hide();
+        }
+      });
+      $("#feature-selection").trigger("change");
 
 
 

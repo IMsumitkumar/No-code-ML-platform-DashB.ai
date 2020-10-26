@@ -127,6 +127,11 @@ def Operation(request):
             ordinal_features = request.POST.getlist("ordinal-features") or empty_list
             top_features_for_kdd = request.POST.get("top-features") or 10
 
+            apply_outlier = True if request.POST.get("remove-outlier") == 'yes' else False
+            outlier_method = request.POST.getlist("remove-outlier-method") or 'iso'
+            apply_feature_selection = True if request.POST.get("feature-selection") == 'yes' else False
+            feature_selection_method = request.POST.get("feature-selection-methods") or 'lgbm'
+            limit_features = request.POST.get("limit-features") or 10
 
             try:
                 data = Supervised_Path(train_data=data, target_variable=target_variable,
@@ -137,12 +142,14 @@ def Operation(request):
                                 nominal_encoding=nominal, top=int(top_features_for_kdd), nominal_encoding_method =nominal_method, features_for_nominal_encode=nominal_features,
                                 ordinal_encoding=ordinal, ordinal_encoding_method =ordinal_method, features_for_ordinal_encode=ordinal_features,
                                 scale_data=scale_and_transform, scaling_method=scale_and_transform_method,
+                                remove_outliers=apply_outlier, outlier_methods=outlier_method,
+                                apply_feature_selection=apply_feature_selection, feature_selection_method=feature_selection_method, limit_features=int(limit_features),
                                 target_transformation=target_transform, Power_transform_data=power_transform)
             except Exception as e:
                 messages.error(request, "Target column is not selected"+str(e))
 
 
-
+            # data.to_csv("train.csv")
 
             obj_top, obj_bottom = data.head(), data.tail()
 

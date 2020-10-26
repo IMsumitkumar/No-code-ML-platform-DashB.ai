@@ -16,6 +16,13 @@ from pyod.models.knn import KNN
 from pyod.models.iforest import IForest
 from pyod.models.pca import PCA as PCA_RO
 from sklearn.covariance import EllipticEnvelope
+from sklearn.feature_selection import SelectKBest
+from sklearn.feature_selection import chi2
+from sklearn.feature_selection import RFE
+from sklearn.feature_selection import SelectFromModel
+from sklearn.ensemble import RandomForestClassifier
+from lightgbm import LGBMClassifier
+from sklearn.linear_model import LogisticRegression
 
 class Handle_Datatype(BaseEstimator,TransformerMixin):
     def __init__(self,target,ml_usecase,categorical_features=[],numerical_features=[],time_features=[],features_todrop=[],display_types=True):
@@ -264,10 +271,10 @@ class Handle_Zero_NearZero_Variance(BaseEstimator, TransformerMixin):
         
     def fit(self, dataset, y=None):
         data = dataset.copy()
-        self.sample_len = len(data[self.target])
+
         for i in data.drop(self.target, axis=1).columns:
             u = pd.DataFrame(data[i].value_counts()).sort_values(by=i, ascending=False, inplace=False)
-            first = len(u)/self.sample_len
+            first = len(u)/len(data[self.target])
             # Below : it means f column is non variance automaticaly make the number big to drop it 
             if len(u[i]) == 1:
                 second = 100
@@ -635,6 +642,79 @@ class Remove_Outliers(BaseEstimator,TransformerMixin):
         self.outliers = data[data['vote_outlier']== len(self.methods)]
     
         return dataset[[True if i not in self.outliers.index else False for i in dataset.index]]
+
+class Feature_Selection(BaseEstimator, TransformerMixin):
+    def __init__(self,target,fs_type, num_feat, threshold=0.8):
+        self.target = target
+        self.fs_type = fs_type
+        self.num_feat = num_feat
+        self.col_corr_feat = []
+        self.threshold = threshold
+        self.features = []
+        
+    
+    def fit(self, dataset, y=None):
+        data = dataset.copy()
+        
+        X = data.drop(self.target, axis=1)
+        y = data[self.target]
+        
+#         self.corr_matrix = X.corr()
+        
+#         if self.fs_type == 'pearson':
+#             for i in range(len(self.corr_matrix.columns)):
+#                 for j in range(i):
+#                     if abs(self.corr_matrix.iloc[i,j]) > self.threshold:
+#                         self.col_name = self.corr_matrix.columns[i]
+#                         self.col_corr_feat.append(self.col_name)
+#                         print(self.col_corr_feat)
+#                         self.features.append(X.drop(self.col_corr_feat,axis=1,errors='ignore'))
+
+        if self.fs_type == 'chi':
+            chi_selector = SelectKBest(score_func=chi2, k=self.num_feat).fit(X, y)
+            chi_support = chi_selector.get_support()
+            self.features = X.loc[:,chi_support].columns.tolist()
+            
+        elif self.fs_type == 'RFE':
+            rfe_selector = RFE(estimator=LogisticRegression(), n_features_to_select=self.num_feat, step=10, verbose=5).fit(X, y)
+            rfe_support = rfe_selector.get_support()
+            self.features = X.loc[:,rfe_support].columns.tolist()
+            
+        elif self.fs_type == 'lasso':
+            embeded_lr_selector = SelectFromModel(LogisticRegression(penalty="l2"), max_features=self.num_feat).fit(X,y)
+            embeded_lr_support = embeded_lr_selector.get_support()
+            self.features = X.loc[:,embeded_lr_support].columns.tolist()
+            
+        elif self.fs_type == 'random forest':
+            embeded_rf_selector = SelectFromModel(RandomForestClassifier(n_estimators=100), max_features=self.num_feat).fit(X, y)
+            embeded_rf_support = embeded_rf_selector.get_support()
+            self.features = X.loc[:, embeded_rf_support].columns.tolist()
+        
+        elif self.fs_type == 'lgbm':
+            lgbc=LGBMClassifier(n_estimators=500, learning_rate=0.05, num_leaves=32, colsample_bytree=0.2,
+                                reg_alpha=3, reg_lambda=1, min_split_gain=0.01, min_child_weight=40)
+
+            embeded_lgb_selector = SelectFromModel(lgbc, max_features=self.num_feat).fit(X, y)
+            embeded_lgb_support = embeded_lgb_selector.get_support()
+            self.features = X.loc[:,embeded_lgb_support].columns.tolist()
+        else:
+            self.features = X.columns
+            
+        self.features.append(str(self.target))
+        return data[self.features]
+    
+    def transform(self, dataset, y=None):
+        data = dataset.copy()
+        
+        # there should not be target column
+        return data[self.features]
+    
+    def fit_transform(self, dataset, y=None):
+        data = dataset.copy()
+        
+        self.fit(data)
+        return self.transform(data)
+
             
 
 class Empty(BaseEstimator, TransformerMixin):
@@ -660,6 +740,7 @@ def Supervised_Path(train_data, target_variable, ml_usecase=None,
                    apply_grouping=False, group_name=[], features_to_group_ListofList=[[]],
                    scale_data=False, scaling_method='zscore',
                    remove_outliers=True, outlier_methods=['iso'],
+                   apply_feature_selection=True, feature_selection_method='lgbm', limit_features=10,
                    target_transformation=False, target_transformation_method='bc',
                    Power_transform_data=False, Power_transform_method='quantile',
                    random_state=42):
@@ -741,6 +822,11 @@ def Supervised_Path(train_data, target_variable, ml_usecase=None,
         pt_target = Target_Transformation(target=target_variable, function_to_apply=target_transformation_method)
     else:
         pt_target = Empty()
+
+    if apply_feature_selection == True:
+        feature_select = Feature_Selection(target=target_variable, fs_type=feature_selection_method, num_feat=limit_features)
+    else:
+        feature_select = Empty()
         
         
     pipe = Pipeline([
@@ -752,9 +838,12 @@ def Supervised_Path(train_data, target_variable, ml_usecase=None,
         ('p_transform', p_transform),
         ('pt_target', pt_target),
         ('feature_time', feature_time),
-        ('nominal', nominal),
         ('ordinal', ordinal),
-        ('remove_outliers', remove_outlier)
+        ('nominal', nominal),
+        # ('znz', znz),
+        ('remove_outliers', remove_outlier),
+        ('feature_select', feature_select),
+        
     ])
     
     if test_data is not None:
