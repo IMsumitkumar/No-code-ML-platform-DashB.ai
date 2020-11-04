@@ -7,7 +7,7 @@ class DataSet(models.Model):
     file = models.FileField(upload_to='files', blank=True, null=True)
 
     def __str__(self):
-        return str(self.file)
+        return str(self.user)
 
 
 class ProcessedDataSet(models.Model):

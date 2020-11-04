@@ -90,6 +90,11 @@
 
             <ul class="navbar-item flex-row nav-dropdowns">
 
+              <form action="{% url 'next' %}" method='post'>
+                {% csrf_token %}
+                <input type="submit" class="btn btn-dark" value="Next Step">
+              </form>
+
                 <li class="nav-item dropdown user-profile-dropdown order-lg-0 order-1">
                     <a href="javascript:void(0);" class="nav-link dropdown-toggle user" id="user-profile-dropdown" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
                         <div class="media">
@@ -226,7 +231,7 @@
                           <form action="{% url 'data_operation' %}" method="post">
                             {% csrf_token %}
                               <label style="color:#000000;"><strong>Select Target Column</strong></label>
-                              <select name="target-col" class="custom-select">
+                              <select name="target-col" class="custom-select" required="true  ">
                                 <option></option>
                                 {% for col in data_columns %}
                                   <option>{{col}}</option>
@@ -421,7 +426,7 @@
                               </select>
                               <br>
                               <br>
-                              <br>
+                              
                               <label style="color:#000000;"><strong>Power Transform</strong></label>
                               <select name="power-transform" class="custom-select">
                                   <option value="no">NO</option>

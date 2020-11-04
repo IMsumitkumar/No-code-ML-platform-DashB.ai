@@ -14,7 +14,7 @@ from django.contrib import messages
 from .preprocess import Supervised_Path
 import json2html
 from .get_db_data import *
-
+from django.conf import settings 
 
 @login_required()
 def upload_data(request):
@@ -105,78 +105,80 @@ def Operation(request):
         data = pd.read_csv('media' + i.file.url, error_bad_lines=False, encoding='latin-1')
         if data.shape[0] > 100000:
             data = data[0:100000]
-        if request.method == 'POST':
-            target_variable = request.POST.get("target-col") or None
-            time_features = request.POST.getlist("time-features") or empty_list
-            features_to_drop = request.POST.getlist("toDrop-features") or empty_list
-            numeric_imputation_strategy = request.POST.get("num-stats") or 'zscore'
-            categoric_imputation_strategy = request.POST.get("cat-stats") or 'most frequent'
-            remove_zero_variance = True if request.POST.get("rm-var") == 'yes' else False                  
-            group_sim_features = True if request.POST.get("gp-sim-feature") == 'yes' else False     
-            sim_group_name = request.POST.getlist("gp-sim-gp-name") or empty_list
-            sim_feature_list = request.POST.getlist("gp-sim-feature-list") or empty_list
-            scale_and_transform = True if request.POST.get("scale-data") == 'yes' else False             
-            scale_and_transform_method = request.POST.get("scale-method") or None
-            target_transform = True if request.POST.get("target-transform") == 'yes' else False            
-            power_transform = True if request.POST.get("power-transform") == 'yes' else False 
-            nominal = True if request.POST.get("nominal") == 'yes' else False  
-            ordinal = True if request.POST.get("ordinal") == 'yes' else False  
-            nominal_method = request.POST.get("nominal-method") or 'kdd orange'
-            ordinal_method = request.POST.get("ordinal-method") or 'target guided'
-            nominal_features = request.POST.getlist("nominal-features") or empty_list
-            ordinal_features = request.POST.getlist("ordinal-features") or empty_list
-            top_features_for_kdd = request.POST.get("top-features") or 10
+        # if request.method == 'POST':
+        target_variable = request.POST.get("target-col") or None
+        time_features = request.POST.getlist("time-features") or empty_list
+        features_to_drop = request.POST.getlist("toDrop-features") or empty_list
+        numeric_imputation_strategy = request.POST.get("num-stats") or 'zscore'
+        categoric_imputation_strategy = request.POST.get("cat-stats") or 'most frequent'
+        remove_zero_variance = True if request.POST.get("rm-var") == 'yes' else False                  
+        group_sim_features = True if request.POST.get("gp-sim-feature") == 'yes' else False     
+        sim_group_name = request.POST.getlist("gp-sim-gp-name") or empty_list
+        sim_feature_list = request.POST.getlist("gp-sim-feature-list") or empty_list
+        scale_and_transform = True if request.POST.get("scale-data") == 'yes' else False             
+        scale_and_transform_method = request.POST.get("scale-method") or None
+        target_transform = True if request.POST.get("target-transform") == 'yes' else False            
+        power_transform = True if request.POST.get("power-transform") == 'yes' else False 
+        nominal = True if request.POST.get("nominal") == 'yes' else False  
+        ordinal = True if request.POST.get("ordinal") == 'yes' else False  
+        nominal_method = request.POST.get("nominal-method") or 'kdd orange'
+        ordinal_method = request.POST.get("ordinal-method") or 'target guided'
+        nominal_features = request.POST.getlist("nominal-features") or empty_list
+        ordinal_features = request.POST.getlist("ordinal-features") or empty_list
+        top_features_for_kdd = request.POST.get("top-features") or 10
 
-            apply_outlier = True if request.POST.get("remove-outlier") == 'yes' else False
-            outlier_method = request.POST.getlist("remove-outlier-method") or 'iso'
-            apply_feature_selection = True if request.POST.get("feature-selection") == 'yes' else False
-            feature_selection_method = request.POST.get("feature-selection-methods") or 'lgbm'
-            limit_features = request.POST.get("limit-features") or 10
+        apply_outlier = True if request.POST.get("remove-outlier") == 'yes' else False
+        outlier_method = request.POST.getlist("remove-outlier-method") or 'iso'
+        apply_feature_selection = True if request.POST.get("feature-selection") == 'yes' else False
+        feature_selection_method = request.POST.get("feature-selection-methods") or 'lgbm'
+        limit_features = request.POST.get("limit-features") or 10
 
-            try:
-                data = Supervised_Path(train_data=data, target_variable=target_variable,
-                                time_features=time_features, features_to_drop=features_to_drop,numeric_imputation_strategy=numeric_imputation_strategy,
-                                categorical_imputation_strategy=categoric_imputation_strategy,
-                                apply_zero_nearZero_variance=remove_zero_variance,
-                                apply_grouping=group_sim_features, group_name=sim_group_name, features_to_group_ListofList=[sim_feature_list],
-                                nominal_encoding=nominal, top=int(top_features_for_kdd), nominal_encoding_method =nominal_method, features_for_nominal_encode=nominal_features,
-                                ordinal_encoding=ordinal, ordinal_encoding_method =ordinal_method, features_for_ordinal_encode=ordinal_features,
-                                scale_data=scale_and_transform, scaling_method=scale_and_transform_method,
-                                remove_outliers=apply_outlier, outlier_methods=outlier_method,
-                                apply_feature_selection=apply_feature_selection, feature_selection_method=feature_selection_method, limit_features=int(limit_features),
-                                target_transformation=target_transform, Power_transform_data=power_transform)
-            except Exception as e:
-                messages.error(request, "Target column is not selected"+str(e))
+        # try:
+        data = Supervised_Path(train_data=data, target_variable=target_variable,
+                            time_features=time_features, features_to_drop=features_to_drop,numeric_imputation_strategy=numeric_imputation_strategy,
+                            categorical_imputation_strategy=categoric_imputation_strategy,
+                            apply_zero_nearZero_variance=remove_zero_variance,
+                            apply_grouping=group_sim_features, group_name=sim_group_name, features_to_group_ListofList=[sim_feature_list],
+                            nominal_encoding=nominal, top=int(top_features_for_kdd), nominal_encoding_method =nominal_method, features_for_nominal_encode=nominal_features,
+                            ordinal_encoding=ordinal, ordinal_encoding_method =ordinal_method, features_for_ordinal_encode=ordinal_features,
+                            scale_data=scale_and_transform, scaling_method=scale_and_transform_method,
+                            remove_outliers=apply_outlier, outlier_methods=outlier_method,
+                            apply_feature_selection=apply_feature_selection, feature_selection_method=feature_selection_method, limit_features=int(limit_features),
+                            target_transformation=target_transform, Power_transform_data=power_transform)
+        # except Exception as e: 
+        #     messages.error(request, "Target column is not selected"+str(e))
 
 
-            # data.to_csv("train.csv")
+        data.to_csv(settings.MEDIA_ROOT / 'output' / 'output.csv')
 
-            obj_top, obj_bottom = data.head(), data.tail()
+        # DataSet.objects.create(user=request.user, file=data.to_csv(settings.MEDIA_ROOT / 'output' / 'boutput.csv'))
 
-            # categorical_data = data.select_dtypes(include=['object']).columns
-            # numerical_data = data.select_dtypes(include=['int64', 'float64']).columns
+        obj_top, obj_bottom = data.head(), data.tail()
 
-            categorical_data = data.dtypes[data.dtypes == 'O'].index
-            num1 = data.dtypes[data.dtypes == 'int64'].index
-            num2 = data.dtypes[data.dtypes == 'float64'].index
-            numerical_data = num1.append(num2)
+        # categorical_data = data.select_dtypes(include=['object']).columns
+        # numerical_data = data.select_dtypes(include=['int64', 'float64']).columns
 
-            data_shape, data_columns, null_count, data_desc = about_data(data)
-            cat_null_desc = datatype_nullCount(data, categorical_data)
-            num_null_desc = datatype_nullCount(data, numerical_data)
+        categorical_data = data.dtypes[data.dtypes == 'O'].index
+        num1 = data.dtypes[data.dtypes == 'int64'].index
+        num2 = data.dtypes[data.dtypes == 'float64'].index
+        numerical_data = num1.append(num2)
 
-            context = {
-                'rows': data_shape[0],
-                'columns': data_shape[1],
-                'data_columns': data_columns,
-                'obj_top': obj_top.to_html(),
-                'obj_bottom':obj_bottom.to_html(),
-                'data_desc_obj': data_desc.to_html(),
-                'null_count': null_count,
-                'num_desc': num_null_desc,
-                'cat_desc': cat_null_desc,
-            }
-            return render(request, 'data/boot.html', context)
+        data_shape, data_columns, null_count, data_desc = about_data(data)
+        cat_null_desc = datatype_nullCount(data, categorical_data)
+        num_null_desc = datatype_nullCount(data, numerical_data)
+
+        context = {
+            'rows': data_shape[0],
+            'columns': data_shape[1],
+            'data_columns': data_columns,
+            'obj_top': obj_top.to_html(),
+            'obj_bottom':obj_bottom.to_html(),
+            'data_desc_obj': data_desc.to_html(),
+            'null_count': null_count,
+            'num_desc': num_null_desc,
+            'cat_desc': cat_null_desc,
+        }
+        return render(request, 'data/boot.html', context)
 
 
 def about_data(data):
