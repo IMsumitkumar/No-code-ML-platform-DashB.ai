@@ -21,7 +21,7 @@ from sklearn.feature_selection import chi2
 from sklearn.feature_selection import RFE
 from sklearn.feature_selection import SelectFromModel
 from sklearn.ensemble import RandomForestClassifier
-from lightgbm import LGBMClassifier
+# from lightgbm import LGBMClassifier
 from sklearn.linear_model import LogisticRegression
 
 class Handle_Datatype(BaseEstimator,TransformerMixin):
